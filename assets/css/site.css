@@ -179,6 +179,7 @@ a { color: inherit; }
 
 /* ------------------------------ hero: asymmetric split ------------------------------ */
 .hero { position: relative; min-height: min(100vh, 940px); display: flex; align-items: center; padding-block: 5.5rem 2rem; overflow: hidden; background: radial-gradient(120% 90% at 15% 8%, rgb(var(--signal-rgb) / .09), transparent 55%), var(--bg); }
+@media (max-width: 980px) { .hero { min-height: 0; padding-block: 6.5rem 3rem; } }
 .hero__grid { position: relative; z-index: 2; width: 100%; display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,1fr); gap: clamp(1rem, 4vw, 3rem); align-items: center; }
 @media (max-width: 980px) { .hero__grid { grid-template-columns: 1fr; } }
 
@@ -203,7 +204,18 @@ a { color: inherit; }
 @media (min-width: 981px) { .hero__system canvas { top: -16%; bottom: -16%; left: -42%; right: -8%; width: auto; height: auto; } }
 .hero__system-label { position: absolute; left: 50%; bottom: -.4rem; transform: translateX(-50%); font-family: var(--font-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); opacity: 0; transition: opacity .3s ease; white-space: nowrap; }
 .hero__system-label.is-on { opacity: 1; }
-@media (max-width: 980px) { .hero__system { order: -1; max-height: 320px; margin-inline: auto; width: 78%; } .hero__system canvas { inset: -8%; width: 116%; height: 116%; } }
+/* mobile: the system stops being its own block (it was shoving the name
+   far down the page) and becomes a quiet backdrop behind the text instead */
+@media (max-width: 980px) {
+  .hero__system {
+    position: absolute; inset: 0 0 auto 0; height: 60%; max-height: 420px;
+    aspect-ratio: auto; z-index: 0; opacity: .55; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, black 45%, transparent 92%);
+    mask-image: linear-gradient(to bottom, black 45%, transparent 92%);
+  }
+  .hero__system canvas { inset: -6%; width: 112%; height: 112%; }
+  .hero__system-label { display: none; }
+}
 
 .hero__scroll { position: absolute; left: 1.5rem; bottom: 1.5rem; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; color: var(--text-dim); text-decoration: none; }
 .hero__scroll svg { width: 14px; height: 14px; }
