@@ -29,8 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # enablement: true switches Pages to this workflow as its source, so the
-      # branch-based builder stops running in parallel with it.
+      # enablement: true creates or enables the Pages site when one is missing,
+      # but it does not switch an existing Pages site from branch-based
+      # publishing to GitHub Actions. If the repo is still configured to publish
+      # from a branch, set the Pages source in repo settings before expecting this
+      # workflow to take over.
       - uses: actions/configure-pages@v5
         with:
           enablement: true

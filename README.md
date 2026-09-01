@@ -12,10 +12,11 @@ GitHub Pages, published by `.github/workflows/pages.yml` on every push to `main`
 Nothing needs to be compiled first — what is in the repository is what gets
 served, and the workflow uploads it verbatim, so Jekyll never sees it.
 
-The workflow claims Pages as its deployment source on first run, replacing the
-branch-based builder. That builder could not be re-run or triggered by hand, so
-a publish that timed out on GitHub's side left the site on the previous build
-with no way to retry it. This one can be re-run from the Actions tab, or started
+The workflow enables Pages for this repository when needed, but it does not
+automatically switch an existing site from branch-based publishing to GitHub
+Actions. If the Pages source is still set to a branch, change it in the
+repository settings to GitHub Actions before expecting this workflow to publish
+that site. This workflow can still be re-run from the Actions tab, or started
 from **Actions → Deploy to GitHub Pages → Run workflow** without a new commit.
 
 ## What a visitor sees
