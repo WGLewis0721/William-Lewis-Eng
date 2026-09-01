@@ -17,59 +17,63 @@ to be compiled first — what is in the repository is what gets served.
 | Section | What it is |
 | --- | --- |
 | Hero | Name, current role framing, contact details, and the resume for the selected lens |
-| Focus | Professional summary, core competencies, and selected impact — all lens-driven |
+| Focus | Professional summary and the three selected-impact statements for that track |
 | Architecture in practice | Interactive diagram of the IL6 platform |
 | Signature work | The three AI infrastructure projects |
 | Experience | Timeline from Leidos in 2018 through the current SAIC / Oteemo role |
-| Capabilities | Searchable matrix of every tool and control, grouped into eight domains |
-| Credentials | Certifications, clearance, education, and the classified environment profile |
-| Resume | The complete resume plus all five tailored editions |
+| Capabilities | The selected edition's core technical competencies, grouped as its resume groups them, searchable |
+| Credentials | Certifications, clearance, education, classified environment profile, publications, affiliations |
+| Resume | All ten tailored PDFs plus the full-detail master resume |
 | Contact | Email, phone, LinkedIn, GitHub |
 
 ## The role lens
 
-The central idea. Alongside the complete resume I keep five editions tailored to
-four role tracks, and the lens control at the top of the page drives all of it:
-the hero, the professional summary, core competencies, selected impact, which
-capabilities are highlighted, the page's accent color, and which resume the
-download button hands over.
+The central idea. Ten resume editions — five role tracks, each written once for
+cleared government hiring and once for the private sector — and the lens control
+at the top of the page drives all of it: the hero, the professional summary,
+selected impact, the capability list, the order of the experience bullets, the
+page's accent color, and which resume the download button hands over.
 
-| Lens | Cleared / Government | Private Sector |
-| --- | --- | --- |
-| Cloud Platform | ✅ | ✅ |
-| DevSecOps | — | ✅ |
-| AI Infrastructure | — | ✅ |
-| Zero Trust Security | ✅ | — |
-
-Switching context also rewrites the experience section, because the government
-and private-sector editions phrase the same roles differently — program context
-and impact levels on one side, commercial framing on the other. Where a lens has
-only one edition the unavailable context is disabled rather than hidden, and the
-page says why.
-
-The complete resume sits above the tailored grid and is always available,
-whichever lens is selected.
+| Lens | id | Cleared / Government | Private Sector |
+| --- | --- | --- | --- |
+| Cloud Platform | `platform` | ✅ | ✅ |
+| DevSecOps | `devsecops` | ✅ | ✅ |
+| SRE & Reliability | `sre` | ✅ | ✅ |
+| AI Infrastructure | `ai` | ✅ | ✅ |
+| Zero Trust Security | `zerotrust` | ✅ | ✅ |
 
 **Deep links.** `?lens=zerotrust&for=gov` opens the page already framed for that
-audience — useful when replying to a specific req. `lens` accepts `platform`,
-`devsecops`, `ai`, or `zerotrust`; `for` accepts `gov` or `private`, and falls
-back to whichever edition that lens actually has.
+audience — useful when replying to a specific req. `for` accepts `gov` or
+`private`.
+
+### What belongs to a lens, and what belongs to an edition
+
+This split is the thing to understand before editing `data.js`, and it comes
+straight from how the resumes are written:
+
+| Belongs to the **lens** (identical in both editions) | Belongs to the **edition** (differs by context) |
+| --- | --- |
+| Job title, competencies, selected impact, bullet ordering, accent | Tagline, professional summary, clearance line, resume file |
+
+The career history itself — role, organisation, dates, stack, and the bullet text
+— is identical in all ten editions. Only the *order* of the bullets changes, so
+each lens carries a `bulletOrder` and the timeline leads with whichever bullet
+that track's resume leads with.
 
 ## Resume documents
 
-| File | Lens | Context |
-| --- | --- | --- |
-| `William-G-Lewis_Complete-Resume.docx` | — | Master edition, full detail |
-| `William-G-Lewis_Principal-Cloud-Platform-Engineer.docx` | Cloud Platform | Private sector |
-| `William-G-Lewis_Principal-Cloud-Platform-Engineer_Cleared.docx` | Cloud Platform | Cleared / government |
-| `William-G-Lewis_Cloud-DevSecOps-Architect.docx` | DevSecOps | Private sector |
-| `William-G-Lewis_AI-Infrastructure-LLMOps-Engineer.docx` | AI Infrastructure | Private sector |
-| `William-G-Lewis_Cloud-Security-Zero-Trust-Architect_Cleared.docx` | Zero Trust Security | Cleared / government |
+Ten tailored PDFs, plus the master resume in Word:
 
-Each tailored edition offers the Word original and a `Print / PDF` button.
-Printing renders a purpose-built, ATS-friendly one-page resume for that edition
-straight from the browser — not a screenshot of the website. All five fit on a
-single Letter page.
+| Track | Private sector | Cleared / government |
+| --- | --- | --- |
+| Principal Cloud & Platform Engineer | `…_Principal-Cloud-Platform-Engineer.pdf` | `…_Principal-Cloud-Platform-Engineer_Cleared.pdf` |
+| Cloud & DevSecOps Architect | `…_Cloud-DevSecOps-Architect.pdf` | `…_Cloud-DevSecOps-Architect_Cleared.pdf` |
+| Cloud SRE & Platform Reliability Engineer | `…_Cloud-SRE-Platform-Reliability.pdf` | `…_Cloud-SRE-Platform-Reliability_Cleared.pdf` |
+| AI Infrastructure & LLMOps Engineer | `…_AI-Infrastructure-LLMOps-Engineer.pdf` | `…_AI-Infrastructure-LLMOps-Engineer_Cleared.pdf` |
+| Cloud Security & Zero Trust Architect | `…_Cloud-Security-Zero-Trust-Architect.pdf` | `…_Cloud-Security-Zero-Trust-Architect_Cleared.pdf` |
+
+All files are prefixed `William-G-Lewis`. The master edition is
+`William-G-Lewis_Complete-Resume.docx`.
 
 ## Other behaviour
 
@@ -79,11 +83,11 @@ immutable versioned objects, and pushed through a one-way data diode into the
 air-gapped enclave — and why the retrieval index and the model that queries it
 have to live inside it. Every component is clickable and keyboard-focusable.
 
-**Capability search.** The matrix filters as you type, and reports how many
-entries the current lens leans on.
+**Capability search.** The matrix filters as you type, and reports both how many
+competencies the selected edition lists and how many exist across all five tracks.
 
 **Command palette.** <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> (or <kbd>/</kbd>)
-to jump to a section, switch lens, download any resume, print, or flip the theme.
+to jump to a section, switch lens or context, download any resume, or flip the theme.
 
 **Theme.** Follows the visitor's system setting, with a manual override in the
 header that persists in `localStorage`.
@@ -94,11 +98,11 @@ header that persists in `localStorage`.
 index.html                 markup + the hand-authored architecture SVG
 assets/css/site.css        design tokens, layout, print stylesheet
 assets/js/data.js          all content — every string comes from a resume edition
-assets/js/site.js          lens state, rendering, diagram, palette, print builder
-assets/resume/*.docx       the complete resume plus five tailored editions
+assets/js/site.js          lens state, rendering, diagram, palette
+assets/resume/             the ten tailored PDFs and the master Word resume
 assets/img/favicon.svg
 resume-inbox/              staging area for new resume versions — see its README
-tools/read_resumes.py      dumps the text of every .docx in a folder
+tools/read_resumes.py      dumps the text of every .pdf/.docx in a folder
 tools/build_standalone.py  inlines CSS + JS into one portable HTML file
 .nojekyll                  serve assets/ verbatim on GitHub Pages
 ```
@@ -106,40 +110,35 @@ tools/build_standalone.py  inlines CSS + JS into one portable HTML file
 ## Editing content
 
 Everything a visitor reads lives in `assets/js/data.js` — summaries, bullets,
-metrics, projects, capabilities, credentials, and the architecture annotations.
+metrics, projects, competencies, credentials, and the architecture annotations.
 Nothing is hard-coded in the markup, so updating the site after a resume revision
 means editing that one file.
 
-The exports at the bottom of `data.js` map to the sections above:
-
 | Export | Drives |
 | --- | --- |
-| `LENSES` | The four role tracks and their editions |
-| `MASTER` | The complete resume card |
-| `EXPERIENCE` | The timeline, with per-context wording |
+| `LENSES` | The five tracks: title, competencies, impact, `bulletOrder`, accent, and the two editions |
+| `MASTER` | The complete-resume card |
+| `EXPERIENCE` | The timeline — shared across all ten editions |
 | `PROJECTS` | Signature work |
-| `SKILL_DOMAINS` | The capability matrix and its per-lens emphasis |
 | `METRICS` | The counters under the hero |
-| `CREDENTIALS`, `CLASSIFIED_PROFILE`, `AFFILIATIONS` | Credentials |
+| `CREDENTIALS`, `CLASSIFIED_PROFILE`, `PUBLICATIONS`, `AFFILIATIONS` | Credentials |
 | `ARCH_NODES` | The text for each diagram component |
 
-**When a resume is revised:** drop the new `.docx` into `resume-inbox/` — that
-folder's README covers the rest, including which name it gets promoted to and
-what has to be re-transcribed into `data.js`. Note that the site never reads the
-`.docx` files at runtime; they are download artifacts, so replacing one without
-updating `data.js` leaves the page showing the old wording.
+**When a resume is revised:** drop the new file into `resume-inbox/` — that
+folder's README covers the rest. Note that the site never reads the resume files
+at runtime; they are download artifacts, so replacing one without updating
+`data.js` leaves the page showing the old wording.
 
-**To add a resume edition:** drop the `.docx` into `assets/resume/`, then add an
-entry under the relevant lens's `editions` in `data.js` with its `file` name.
-
-**To mark a skill as emphasised by a lens:** add that lens's id to the skill's
-`l` array in `SKILL_DOMAINS`.
+**To add a role track:** add a lens to `LENSES` with a unique `id`, an `accent`
+and `accentInk` pair (bright enough for the dark ground, deep enough for the
+light one), and both editions. Nothing else needs to change — the control,
+palette, resume grid, and deep links all read from that array.
 
 ## Design notes
 
 - **Palette** — cool drafting-film neutrals carrying one accent at a time, set by
-  the active lens: signal amber, teal, violet, clay. Both themes are defined at
-  token level, including the un-stamped system-default state.
+  the active lens: signal amber, teal, steel blue, violet, clay. Both themes are
+  defined at token level, including the un-stamped system-default state.
 - **Type** — Archivo (variable width, set expanded) for display, IBM Plex Sans
   for body, IBM Plex Mono for labels and data.
 - **Motion** — an ambient node field in the hero, scroll reveals, and counter

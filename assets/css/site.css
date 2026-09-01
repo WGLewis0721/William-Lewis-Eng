@@ -298,13 +298,14 @@ a { color: inherit; }
 
 /* ------------------------------ lens control ------------------------------ */
 .lensbar { position: sticky; top: 3.4rem; z-index: 55; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--ground) 92%, transparent); backdrop-filter: blur(14px); }
-.lensbar__in { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.4rem; padding-block: .7rem; }
+.lensbar__in { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1.3rem; padding-block: .7rem; }
+.lensbar__group { display: flex; align-items: center; gap: .7rem; }
 .lensbar__label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); flex: none; }
 
 .seg { display: flex; border: 1px solid var(--rule); border-radius: 2px; background: var(--panel); overflow: hidden; flex-wrap: wrap; }
 .seg button {
   font-family: var(--font-mono); font-size: .73rem; letter-spacing: .05em;
-  padding: .5rem .85rem; background: transparent; border: 0; border-right: 1px solid var(--rule);
+  padding: .5rem .78rem; background: transparent; border: 0; border-right: 1px solid var(--rule);
   color: var(--ink-dim); cursor: pointer; white-space: nowrap;
   transition: color .18s ease, background-color .18s ease;
 }
@@ -318,6 +319,7 @@ a { color: inherit; }
 .lensbar__note b { color: var(--a); font-weight: 500; }
 @media (max-width: 720px) {
   .lensbar { position: static; }
+  .lensbar__group { width: 100%; }
   .lensbar__in { gap: .5rem .9rem; }
   .lensbar__note { margin-left: 0; width: 100%; }
   .seg { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
@@ -427,6 +429,7 @@ a { color: inherit; }
 .cap__h { display: grid; gap: .18rem; }
 .cap__h h3 { font-size: .98rem; font-stretch: 110%; }
 .cap__h span { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase; }
+.cap__list .chip { transition: opacity .2s ease; }
 .cap__list { display: flex; flex-wrap: wrap; gap: .35rem; }
 .cap__list .chip { transition: border-color .25s ease, color .25s ease, background-color .25s ease, opacity .25s ease; }
 .cap__list .chip.is-dim { opacity: .62; }
@@ -495,34 +498,19 @@ kbd { font-family: var(--font-mono); font-size: .95em; border: 1px solid var(--r
 .rv.is-in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } }
 
-/* ------------------------------ print: the resume ------------------------------ */
-.print-only { display: none; }
-
+/* ------------------------------ print ------------------------------ */
+/* The downloadable editions are already PDFs, so printing just needs to put
+   the page itself on paper legibly. */
 @media print {
-  @page { size: letter; margin: 0.45in; }
-  body { background: #fff !important; background-image: none !important; color: #000; font-size: 10pt; line-height: 1.24; }
-  .bar, .lensbar, .hero__canvas, .pal, .skip, .no-print, .section, .hero, .foot { display: none !important; }
-  .print-only { display: block !important; }
-
-  .pr { font-family: var(--font-body); color: #000; }
-  .pr h1 { font-family: var(--font-display); font-stretch: 118%; font-size: 21pt; letter-spacing: -.01em; margin: 0; }
-  .pr .pr-role { font-size: 11pt; font-weight: 600; margin-top: 2pt; }
-  .pr .pr-meta { font-size: 8.6pt; margin-top: 3pt; color: #222; }
-  .pr .pr-clear { font-size: 8.6pt; font-weight: 600; margin-top: 2pt; }
-  .pr h2 {
-    font-family: var(--font-mono); font-size: 8.4pt; letter-spacing: .16em; text-transform: uppercase;
-    border-bottom: .8pt solid #000; padding-bottom: 1.5pt; margin: 7pt 0 3.5pt;
-  }
-  .pr p, .pr li { font-size: 9.4pt; }
-  .pr ul { margin: 3pt 0 0; padding-left: 12pt; }
-  .pr li { margin-bottom: 0.5pt; }
-  .pr .pr-job { margin-bottom: 4.5pt; break-inside: avoid; }
-  .pr .pr-job-h { display: flex; justify-content: space-between; gap: 10pt; align-items: baseline; }
-  .pr .pr-job-h strong { font-size: 10pt; }
-  .pr .pr-job-h span { font-family: var(--font-mono); font-size: 8.4pt; white-space: nowrap; }
-  .pr .pr-org { font-size: 9pt; font-style: italic; color: #222; }
-  .pr .pr-comp { font-size: 9.2pt; }
-  .pr .pr-impact b { font-size: 9.4pt; }
+  @page { size: letter; margin: 0.5in; }
+  body { background: #fff !important; background-image: none !important; color: #000; font-size: 10pt; }
+  .bar, .lensbar, .hero__canvas, .pal, .skip, .no-print, .foot { display: none !important; }
+  .section { border-top: 1px solid #999; padding-block: 14pt; break-inside: auto; }
+  .panel { border: 1px solid #bbb; box-shadow: none; break-inside: avoid; }
+  .panel::before, .panel::after { display: none; }
+  .rv { opacity: 1 !important; transform: none !important; }
+  a { text-decoration: none; color: #000; }
+  .arch__scroll svg { min-width: 0; }
 }
 
 /* ------------------------------ projects ------------------------------ */
@@ -584,3 +572,16 @@ kbd { font-family: var(--font-mono); font-size: .95em; border: 1px solid var(--r
 
 .affil { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; align-items: baseline; margin-top: 1.3rem; font-size: .9rem; color: var(--ink-2); }
 .affil .k { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .15em; text-transform: uppercase; color: var(--ink-dim); }
+
+/* --------------------------- publications & affiliations --------------------------- */
+.extras {
+  margin-top: 1.4rem; display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 1.4rem clamp(1.5rem, 4vw, 3rem);
+}
+@media (max-width: 760px) { .extras { grid-template-columns: 1fr; } }
+.extras__col { display: grid; gap: .7rem; align-content: start; }
+.extras__list { margin: 0; padding-left: 1.05rem; display: grid; gap: .5rem; }
+.extras__list li { font-size: .92rem; color: var(--ink-2); }
+.extras__list li::marker { color: var(--a-mark); }
+.extras__line { font-size: .92rem; color: var(--ink-2); }

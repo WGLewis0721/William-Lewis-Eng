@@ -4,8 +4,8 @@
 (function () {
   'use strict';
 
-  const { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS, AFFILIATIONS,
-          EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES } = SITE;
+  const { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS,
+          PUBLICATIONS, AFFILIATIONS, EXPERIENCE, METRICS, CREDENTIALS, ARCH_NODES } = SITE;
 
   /* Where the resume files live. Served from the repo they sit next to the
      page, which is the default. A copy of this page travelling on its own —
@@ -19,20 +19,10 @@
     ? 'target="_blank" rel="noopener"'
     : `download="${esc(file)}"`;
 
-  /* Accent pairs: the bright hex reads on the dark ground, the deep hex holds
-     contrast on the light ground. Both are written to the root on every swap. */
-  const ACCENTS = {
-    platform:  { bright: '#F2A93B', deep: '#8A5605' },
-    devsecops: { bright: '#3FBFA2', deep: '#0B6A55' },
-    ai:        { bright: '#A98CE8', deep: '#59389E' },
-    zerotrust: { bright: '#E4715C', deep: '#A33420' }
-  };
-
   const $  = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const pick = (v, sector) => (v && !Array.isArray(v) && typeof v === 'object' ? v[sector] : v);
 
   const hexToRgb = (hex) => {
     const n = parseInt(hex.slice(1), 16);
@@ -41,14 +31,14 @@
 
   /* ---------------------------------------------------------------- state */
   const lensById = Object.fromEntries(LENSES.map((l) => [l.id, l]));
-  const state = {
-    lens: 'platform',
-    sector: 'private'
-  };
+  const state = { lens: 'platform', sector: 'private' };
 
-  const editionsOf = (lensId) => Object.keys(lensById[lensId].editions);
+  const editionsOf = (id) => Object.keys(lensById[id].editions);
   const activeLens = () => lensById[state.lens];
   const activeEdition = () => activeLens().editions[state.sector];
+
+  /* Every competency named anywhere, for the breadth figure in the caption. */
+  const ALL_COMPETENCIES = new Set(LENSES.flatMap((l) => l.competencies.flatMap((g) => g.items)));
 
   /* ------------------------------------------------------------- theme */
   const root = document.documentElement;
@@ -61,9 +51,8 @@
     if (stamp) return stamp === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
-  function paintThemeIcon() {
-    themeIcon.innerHTML = currentlyDark() ? SUN : MOON;
-  }
+  function paintThemeIcon() { themeIcon.innerHTML = currentlyDark() ? SUN : MOON; }
+
   try {
     const saved = localStorage.getItem('wgl-theme');
     if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
@@ -85,7 +74,6 @@
   lensSeg.innerHTML = LENSES.map((l) =>
     `<button type="button" data-lens="${l.id}" aria-pressed="false" title="${esc(l.blurb)}">${esc(l.label)}</button>`
   ).join('');
-
   sectorSeg.innerHTML = ['private', 'gov'].map((s) =>
     `<button type="button" data-sector="${s}" aria-pressed="false">${esc(SECTORS[s].label)}</button>`
   ).join('');
@@ -102,8 +90,7 @@
   function setLens(id, opts) {
     if (!lensById[id]) return;
     state.lens = id;
-    const available = editionsOf(id);
-    if (!available.includes(state.sector)) state.sector = available[0];
+    if (!editionsOf(id).includes(state.sector)) state.sector = editionsOf(id)[0];
     render(opts);
   }
   function setSector(s, opts) {
@@ -113,13 +100,11 @@
   }
 
   /* ------------------------------------------------------------- rendering */
-  const swaps = () => $$('.swap');
-
   function render(opts) {
     const animate = !(opts && opts.silent) && !reduced();
     if (animate) {
-      swaps().forEach((el) => el.classList.add('is-out'));
-      setTimeout(() => { paint(); swaps().forEach((el) => el.classList.remove('is-out')); }, 170);
+      $$('.swap').forEach((el) => el.classList.add('is-out'));
+      setTimeout(() => { paint(); $$('.swap').forEach((el) => el.classList.remove('is-out')); }, 170);
     } else {
       paint();
     }
@@ -128,24 +113,21 @@
 
   function paintControls() {
     const available = editionsOf(state.lens);
-    const acc = ACCENTS[state.lens];
-    root.style.setProperty('--accent-bright', acc.bright);
-    root.style.setProperty('--accent-deep', acc.deep);
-    root.style.setProperty('--accent-bright-rgb', hexToRgb(acc.bright));
-    root.style.setProperty('--accent-deep-rgb', hexToRgb(acc.deep));
+    const L = activeLens();
+    root.style.setProperty('--accent-bright', L.accent);
+    root.style.setProperty('--accent-deep', L.accentInk);
+    root.style.setProperty('--accent-bright-rgb', hexToRgb(L.accent));
+    root.style.setProperty('--accent-deep-rgb', hexToRgb(L.accentInk));
 
     $$('[data-lens]', lensSeg).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lens === state.lens)));
     $$('[data-sector]', sectorSeg).forEach((b) => {
       const ok = available.includes(b.dataset.sector);
       b.disabled = !ok;
       b.setAttribute('aria-pressed', String(ok && b.dataset.sector === state.sector));
-      b.title = ok ? '' : `No ${SECTORS[b.dataset.sector].label.toLowerCase()} edition for the ${activeLens().label} lens`;
     });
 
-    const note = $('#lens-note');
-    note.innerHTML = available.length === 1
-      ? `This track is written for <b>${esc(SECTORS[available[0]].label.toLowerCase())}</b> hiring only.`
-      : `Both editions available — <b>${esc(SECTORS[state.sector].label.toLowerCase())}</b> shown.`;
+    $('#lens-note').innerHTML =
+      `Showing the <b>${esc(SECTORS[state.sector].label.toLowerCase())}</b> edition.`;
 
     $('#clearance-line').textContent = state.sector === 'gov'
       ? PROFILE.clearance
@@ -153,11 +135,13 @@
   }
 
   function paint() {
+    const L = activeLens();
     const ed = activeEdition();
 
-    $('#hero-role').textContent = ed.title;
+    $('#hero-role').textContent = L.title;
     $('#hero-tagline').textContent = ed.tagline;
     $('#hero-summary').textContent = ed.summary;
+
     const heroDl = $('#hero-download');
     heroDl.href = RESUME_BASE + encodeURIComponent(ed.file);
     if (OFF_SITE) {
@@ -167,12 +151,10 @@
     } else {
       heroDl.setAttribute('download', ed.file);
     }
-    $('#hero-download-label').textContent = 'Download this resume';
 
-    $('#focus-title').textContent = ed.title;
+    $('#focus-title').textContent = L.title;
     $('#focus-summary').textContent = ed.summary;
-    $('#focus-comps').innerHTML = ed.competencies.map((c) => `<span class="chip chip--on">${esc(c)}</span>`).join('');
-    $('#focus-impact').innerHTML = ed.impact.map((i) => `
+    $('#focus-impact').innerHTML = L.impact.map((i) => `
       <article class="impact__card panel">
         <h3>${esc(i.title)}</h3>
         <p>${esc(i.body)}</p>
@@ -180,16 +162,17 @@
 
     paintTimeline();
     paintMetrics();
-    paintCapEmphasis();
+    paintCapabilities();
     paintResumeCards();
-    buildPrintResume();
   }
 
   /* -------------------------------------------------------------- timeline */
   function paintTimeline() {
-    const s = state.sector;
+    const L = activeLens();
     $('#timeline').innerHTML = EXPERIENCE.map((job) => {
-      const bullets = pick(job.bullets, s) || [];
+      const order = L.bulletOrder[job.id] || job.bullets.map((_, i) => i);
+      const bullets = order.map((i) => job.bullets[i]).filter(Boolean);
+      const context = (state.sector === 'gov' && job.program) ? job.program : job.context;
       return `
       <article class="tl__row${job.current ? ' is-current' : ''}">
         <div class="tl__when">
@@ -198,8 +181,8 @@
         </div>
         <div class="tl__spine"><i></i></div>
         <div class="tl__what">
-          <h3>${esc(pick(job.role, s))}</h3>
-          <p class="tl__org">${esc(job.org)} <span class="ctx">· ${esc(pick(job.context, s))}</span></p>
+          <h3>${esc(job.role)}</h3>
+          <p class="tl__org">${esc(job.org)} <span class="ctx">· ${esc(context)}</span></p>
           <ul>${bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
           <div class="tl__stack">${job.stack.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
         </div>
@@ -211,7 +194,7 @@
   let metricsCounted = false;
   function paintMetrics() {
     const list = METRICS.filter((m) => !m.sector || m.sector === state.sector);
-    $('#metrics').innerHTML = list.map((m, i) => {
+    $('#metrics').innerHTML = list.map((m) => {
       const shown = m.text || m.display || ((m.prefix || '') + m.value + (m.suffix || ''));
       const countable = !m.text && !m.display;
       return `
@@ -234,38 +217,31 @@
       const suffix = el.dataset.suffix || '';
       if (reduced()) { el.textContent = target + suffix; return; }
       const t0 = performance.now();
-      const dur = 1100;
       (function step(t) {
-        const p = Math.min(1, (t - t0) / dur);
-        const eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(target * eased) + suffix;
+        const p = Math.min(1, (t - t0) / 1100);
+        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))) + suffix;
         if (p < 1) requestAnimationFrame(step);
       })(t0);
     });
   }
 
   /* ---------------------------------------------------------- capabilities */
-  $('#cap-grid').innerHTML = SKILL_DOMAINS.map((d) => `
-    <section class="cap panel" data-domain="${d.id}">
-      <div class="cap__h">
-        <h3>${esc(d.name)}</h3>
-        <span>${esc(d.note)}</span>
-      </div>
-      <div class="cap__list">
-        ${d.skills.map((sk) => `<span class="chip" data-skill="${esc(sk.n.toLowerCase())}" data-lenses="${sk.l.join(' ')}">${esc(sk.n)}</span>`).join('')}
-      </div>
-    </section>`).join('');
+  const capSearch = $('#cap-search');
 
-  function paintCapEmphasis() {
-    $$('#cap-grid .chip').forEach((chip) => {
-      const on = chip.dataset.lenses.split(' ').includes(state.lens);
-      chip.classList.toggle('chip--on', on);
-      chip.classList.toggle('is-dim', !on);
-    });
-    updateCapCount();
+  function paintCapabilities() {
+    $('#cap-grid').innerHTML = activeLens().competencies.map((g) => `
+      <section class="cap panel">
+        <div class="cap__h">
+          <h3>${esc(g.group)}</h3>
+          <span>${g.items.length} listed</span>
+        </div>
+        <div class="cap__list">
+          ${g.items.map((s) => `<span class="chip" data-skill="${esc(s.toLowerCase())}">${esc(s)}</span>`).join('')}
+        </div>
+      </section>`).join('');
+    filterCaps();
   }
 
-  const capSearch = $('#cap-search');
   function filterCaps() {
     const q = capSearch.value.trim().toLowerCase();
     $$('#cap-grid .cap').forEach((card) => {
@@ -277,15 +253,11 @@
       });
       card.classList.toggle('is-empty', visible === 0);
     });
-    updateCapCount();
-  }
-  function updateCapCount() {
     const total = $$('#cap-grid .chip').length;
     const shown = $$('#cap-grid .chip:not(.is-hidden)').length;
-    const lit = $$('#cap-grid .chip.chip--on:not(.is-hidden)').length;
-    $('#cap-count').textContent = capSearch.value.trim()
-      ? `${shown} of ${total} match`
-      : `${total} capabilities · ${lit} emphasized by this lens`;
+    $('#cap-count').textContent = q
+      ? `${shown} of ${total} match on this edition`
+      : `${total} on this edition · ${ALL_COMPETENCIES.size} across all five tracks`;
   }
   capSearch.addEventListener('input', filterCaps);
 
@@ -315,32 +287,32 @@
 
   $('#profile-list').innerHTML = CLASSIFIED_PROFILE.map((r) =>
     `<div><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`).join('');
+
+  $('#publications').innerHTML = PUBLICATIONS.map((p) => `<li>${esc(p)}</li>`).join('');
   $('#affiliations').textContent = AFFILIATIONS.join(' · ');
 
   /* --------------------------------------------------------- resume cards */
   const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 18.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5"/></svg>';
-  const PR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 19H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 15h10v6H7z"/></svg>';
 
   const EDITION_LIST = LENSES.flatMap((l) =>
-    Object.entries(l.editions).map(([sector, ed]) => ({ lens: l, sector, ed }))
-  );
+    Object.entries(l.editions).map(([sector, ed]) => ({ lens: l, sector, ed })));
+
+  const fileKind = (f) => (f.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Word');
 
   function paintResumeCards() {
     $('#res-grid').innerHTML = EDITION_LIST.map(({ lens, sector, ed }) => {
       const isActive = lens.id === state.lens && sector === state.sector;
-      const acc = ACCENTS[lens.id];
       return `
       <article class="res panel${isActive ? ' is-active' : ''}"
-               style="--card-accent:${acc.bright};--card-ink:${acc.deep}">
+               style="--card-accent:${lens.accent};--card-ink:${lens.accentInk}">
         <div class="res__h">
-          <span class="res__badge">${esc(SECTORS[sector].label)}</span>
-          <h3>${esc(ed.title)}</h3>
+          <span class="res__badge">${esc(lens.label)} · ${esc(SECTORS[sector].label)}</span>
+          <h3>${esc(lens.title)}</h3>
           <p>${esc(ed.tagline)}</p>
         </div>
         <p class="res__sum">${esc(ed.summary.split('. ')[0])}.</p>
         <div class="res__acts">
-          <a class="btn${isActive ? ' btn--primary' : ''}" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Word</a>
-          <button class="btn" type="button" data-print="${lens.id}" data-print-sector="${sector}">${PR_ICON}Print / PDF</button>
+          <a class="btn${isActive ? ' btn--primary' : ''}" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Download ${fileKind(ed.file)}</a>
         </div>
         <p class="res__file">${esc(ed.file)}</p>
       </article>`;
@@ -354,7 +326,7 @@
         <h3>${esc(MASTER.title)}</h3>
         <p class="master__tag">${esc(MASTER.tagline)}</p>
         <div class="master__acts">
-          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(MASTER.file)}" ${linkAttrs(MASTER.file)}>${DL_ICON}Download complete resume</a>
+          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(MASTER.file)}" ${linkAttrs(MASTER.file)}>${DL_ICON}Download ${fileKind(MASTER.file)}</a>
         </div>
         <p class="master__file">${esc(MASTER.file)}</p>
       </div>
@@ -363,55 +335,6 @@
         <p class="master__note">${esc(MASTER.note)}</p>
       </div>
     </article>`;
-
-  $('#res-grid').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-print]');
-    if (!b) return;
-    setLens(b.dataset.print, { silent: true });
-    setSector(b.dataset.printSector, { silent: true });
-    setTimeout(() => window.print(), 60);
-  });
-
-  /* -------------------------------------------------------- print resume */
-  function buildPrintResume() {
-    const ed = activeEdition();
-    const s = state.sector;
-    const contact = [PROFILE.location, PROFILE.email, PROFILE.phone, PROFILE.linkedin.label, PROFILE.github.label].join(' | ');
-    const certs = CREDENTIALS.filter((c) => c.kind !== 'education');
-    const edu = CREDENTIALS.find((c) => c.kind === 'education');
-
-    $('#print-resume').innerHTML = `
-      <div class="pr">
-        <h1>${esc(PROFILE.name.toUpperCase())}</h1>
-        <div class="pr-role">${esc(ed.title)} | ${esc(ed.tagline.replace(/ · /g, ' | '))}</div>
-        <div class="pr-meta">${esc(contact)}</div>
-        ${s === 'gov' ? `<div class="pr-clear">${esc(PROFILE.clearance.replace(/ · /g, ' | '))}</div>` : ''}
-
-        <h2>Professional Summary</h2>
-        <p>${esc(ed.summary)}</p>
-
-        <h2>Core Competencies</h2>
-        <p class="pr-comp">${esc(ed.competencies.join(' | '))}</p>
-
-        <h2>Selected Impact</h2>
-        ${ed.impact.map((i) => `<p class="pr-impact"><b>${esc(i.title)}:</b> ${esc(i.body)}</p>`).join('')}
-
-        <h2>Professional Experience</h2>
-        ${EXPERIENCE.map((job) => `
-          <div class="pr-job">
-            <div class="pr-job-h">
-              <strong>${esc(pick(job.role, s))}</strong>
-              <span>${esc(job.period)}</span>
-            </div>
-            <div class="pr-org">${esc(job.org)}${s === 'gov' && job.id === 'oteemo' ? ', CNAP Program, Gunter AFB' : ''}</div>
-            <ul>${(pick(job.bullets, s) || []).map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
-          </div>`).join('')}
-
-        <h2>Certifications &amp; Education</h2>
-        <p>${esc(certs.filter((c) => s === 'gov' || c.kind === 'cert').map((c) => `${c.name} (${c.meta})`).join(' | '))}</p>
-        <p>${esc(edu.name + ', ' + edu.meta)}</p>
-      </div>`;
-  }
 
   /* ---------------------------------------------------------- architecture */
   const archNodes = $$('#arch-svg .n-hit');
@@ -482,37 +405,38 @@
   let palItems = [];
   let palIdx = 0;
 
-  function commands() {
+  const grab = (file) => () => {
+    const url = RESUME_BASE + encodeURIComponent(file);
+    if (OFF_SITE) { window.open(url, '_blank', 'noopener'); return; }
+    const a = document.createElement('a');
+    a.href = url; a.download = file;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  const ALL_COMMANDS = (function () {
     const list = [
       { label: 'Focus', group: 'Go to', run: () => location.hash = '#focus' },
       { label: 'Architecture in practice', group: 'Go to', run: () => location.hash = '#architecture' },
+      { label: 'Signature projects', group: 'Go to', run: () => location.hash = '#projects' },
       { label: 'Experience', group: 'Go to', run: () => location.hash = '#experience' },
       { label: 'Capabilities', group: 'Go to', run: () => location.hash = '#capabilities' },
       { label: 'Credentials', group: 'Go to', run: () => location.hash = '#credentials' },
-      { label: 'Signature projects', group: 'Go to', run: () => location.hash = '#projects' },
       { label: 'Resume downloads', group: 'Go to', run: () => location.hash = '#resume' },
       { label: 'Contact', group: 'Go to', run: () => location.hash = '#contact' }
     ];
     LENSES.forEach((l) => list.push({ label: `Read as ${l.label}`, group: 'Lens', run: () => setLens(l.id) }));
-    const grab = (file) => () => {
-      const url = RESUME_BASE + encodeURIComponent(file);
-      if (OFF_SITE) { window.open(url, '_blank', 'noopener'); return; }
-      const a = document.createElement('a');
-      a.href = url; a.download = file;
-      document.body.appendChild(a); a.click(); a.remove();
-    };
+    list.push({ label: 'Switch to the cleared / government edition', group: 'Context', run: () => setSector('gov') });
+    list.push({ label: 'Switch to the private-sector edition', group: 'Context', run: () => setSector('private') });
     list.push({ label: 'Complete resume — every project, nothing trimmed', group: 'Download', run: grab(MASTER.file) });
     EDITION_LIST.forEach(({ lens, sector, ed }) => list.push({
-      label: `${ed.title} — ${SECTORS[sector].short}`,
+      label: `${lens.title} — ${SECTORS[sector].short}`,
       group: 'Download',
       run: grab(ed.file)
     }));
-    list.push({ label: 'Print the current edition as PDF', group: 'Action', run: () => window.print() });
     list.push({ label: 'Switch color theme', group: 'Action', run: () => $('#theme-toggle').click() });
     list.push({ label: 'Email William', group: 'Action', run: () => location.href = 'mailto:' + PROFILE.email });
     return list;
-  }
-  const ALL_COMMANDS = commands();
+  })();
 
   function renderPal() {
     const q = palInput.value.trim().toLowerCase();
@@ -529,12 +453,7 @@
     const sel = palList.children[palIdx];
     if (sel) sel.scrollIntoView({ block: 'nearest' });
   }
-  function openPal() {
-    pal.setAttribute('open', '');
-    palInput.value = '';
-    renderPal();
-    palInput.focus();
-  }
+  function openPal() { pal.setAttribute('open', ''); palInput.value = ''; renderPal(); palInput.focus(); }
   function closePal() { pal.removeAttribute('open'); }
   function runPal() {
     const c = palItems[palIdx];
@@ -554,7 +473,7 @@
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); return; }
     if (e.key === '/' && !typing) { e.preventDefault(); openPal(); return; }
     if (!pal.hasAttribute('open')) return;
-    if (e.key === 'Escape') { closePal(); }
+    if (e.key === 'Escape') closePal();
     else if (e.key === 'ArrowDown') { e.preventDefault(); movePal(1); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); movePal(-1); }
     else if (e.key === 'Enter') { e.preventDefault(); runPal(); }
@@ -567,12 +486,9 @@
     const ctx = cv.getContext('2d');
     let w = 0, h = 0, dpr = 1, nodes = [], packets = [], raf = null;
 
-    function accent() {
-      return getComputedStyle(root).getPropertyValue('--a-rgb').trim() || '242 169 59';
-    }
-    function inkColor() {
-      return currentlyDark() ? '222 231 235' : '12 20 24';
-    }
+    const accent = () => getComputedStyle(root).getPropertyValue('--a-rgb').trim() || '242 169 59';
+    const inkColor = () => (currentlyDark() ? '222 231 235' : '12 20 24');
+
     function size() {
       const r = cv.getBoundingClientRect();
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -591,16 +507,12 @@
 
     function draw(moving) {
       ctx.clearRect(0, 0, w, h);
-      const ink = inkColor();
-      const acc = accent();
-      const LINK = 132;
-
+      const ink = inkColor(), acc = accent(), LINK = 132;
       for (let i = 0; i < nodes.length; i++) {
         const a = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
           const b = nodes[j];
-          const dx = a.x - b.x, dy = a.y - b.y;
-          const d = Math.hypot(dx, dy);
+          const d = Math.hypot(a.x - b.x, a.y - b.y);
           if (d < LINK) {
             ctx.strokeStyle = `rgb(${ink} / ${(1 - d / LINK) * 0.16})`;
             ctx.lineWidth = 1;
@@ -612,18 +524,15 @@
         ctx.fillStyle = `rgb(${ink} / .28)`;
         ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
       });
-
       packets.forEach((p) => {
         const a = nodes[p.a % nodes.length], b = nodes[p.b % nodes.length];
         if (!a || !b) return;
-        const x = a.x + (b.x - a.x) * p.t;
-        const y = a.y + (b.y - a.y) * p.t;
+        const x = a.x + (b.x - a.x) * p.t, y = a.y + (b.y - a.y) * p.t;
         ctx.fillStyle = `rgb(${acc} / .85)`;
         ctx.beginPath(); ctx.arc(x, y, 2.1, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = `rgb(${acc} / .18)`;
         ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
       });
-
       if (!moving) return;
       nodes.forEach((n) => {
         n.x += n.vx; n.y += n.vy;

@@ -91,10 +91,14 @@
 <!-- ============================== lens control ============================== -->
 <div class="lensbar no-print" id="lensbar">
   <div class="shell lensbar__in">
-    <span class="lensbar__label">Read this as</span>
-    <div class="seg seg--lens" id="lens-seg" role="group" aria-label="Role lens"></div>
-    <span class="lensbar__label">Context</span>
-    <div class="seg seg--sector" id="sector-seg" role="group" aria-label="Hiring context"></div>
+    <div class="lensbar__group">
+      <span class="lensbar__label">Read this as</span>
+      <div class="seg seg--lens" id="lens-seg" role="group" aria-label="Role lens"></div>
+    </div>
+    <div class="lensbar__group">
+      <span class="lensbar__label">Context</span>
+      <div class="seg seg--sector" id="sector-seg" role="group" aria-label="Hiring context"></div>
+    </div>
     <span class="lensbar__note" id="lens-note"></span>
   </div>
 </div>
@@ -112,15 +116,13 @@
     <div class="section-head rv">
       <span class="eyebrow">Focus</span>
       <h2 id="focus-title">What this role gets</h2>
-      <p class="lede">Five resume editions, four role tracks. Pick the lens above and this page — summary, competencies, proof, and the resume you download — reframes to match the job you are hiring for.</p>
+      <p class="lede">Ten resume editions across five role tracks. Pick the lens above and this page — summary, proof, capabilities, the order of the experience bullets, and the resume you download — reframes to match the job you are hiring for.</p>
     </div>
 
     <div class="focus-grid rv">
       <div class="summary-block">
         <span class="eyebrow">Professional summary</span>
         <p class="body swap" id="focus-summary"></p>
-        <span class="eyebrow">Core competencies</span>
-        <div class="comp-wrap swap" id="focus-comps"></div>
       </div>
 
       <div class="impact">
@@ -302,8 +304,8 @@
   <div class="shell">
     <div class="section-head rv">
       <span class="eyebrow">Capabilities</span>
-      <h2>The full stack of it</h2>
-      <p class="lede">Everything below appears somewhere in the resume editions. Highlighted entries are the ones the current lens leans on hardest — search to check for a specific tool.</p>
+      <h2>What this track runs on</h2>
+      <p class="lede">The core technical competencies exactly as the selected edition lists them, grouped the way that resume groups them. Switch lens to see a different set, or search for a specific tool.</p>
     </div>
 
     <div class="cap__controls rv no-print">
@@ -335,7 +337,16 @@
       <dl class="profile-list" id="profile-list"></dl>
     </div>
 
-    <p class="affil rv"><span class="k">Affiliations</span><span id="affiliations"></span></p>
+    <div class="extras rv">
+      <div class="extras__col">
+        <span class="eyebrow">Documentation &amp; publications</span>
+        <ul class="extras__list" id="publications"></ul>
+      </div>
+      <div class="extras__col">
+        <span class="eyebrow">Affiliations</span>
+        <p class="extras__line" id="affiliations"></p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -345,7 +356,7 @@
     <div class="section-head rv">
       <span class="eyebrow">Resume</span>
       <h2>Everything, or exactly what the req asks for</h2>
-      <p class="lede">One complete resume, plus five editions cut down for a particular kind of role. Download the Word original, or use <strong>Print</strong> to generate a clean PDF of any tailored edition straight from your browser.</p>
+      <p class="lede">Ten tailored PDFs — five role tracks, each written once for cleared government hiring and once for the private sector — plus the full-detail master resume in Word.</p>
     </div>
     <div class="rv" id="res-master"></div>
     <p class="res-split rv"><span>Or a tailored edition</span></p>
@@ -391,9 +402,6 @@
     <div class="pal__foot"><kbd>↑</kbd> <kbd>↓</kbd> navigate · <kbd>↵</kbd> run · <kbd>esc</kbd> close</div>
   </div>
 </div>
-
-<!-- printable resume, built from the active lens + context -->
-<div class="print-only" id="print-resume" aria-hidden="true"></div>
 
 <script src="assets/js/data.js"></script>
 <script src="assets/js/site.js"></script>

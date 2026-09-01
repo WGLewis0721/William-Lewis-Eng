@@ -1,5 +1,13 @@
 /* Structured content model for the site.
-   Every string below is drawn from one of the five resume editions in /assets/resume. */
+
+   Everything here is transcribed from the resume PDFs in /assets/resume.
+   Regenerate the wording from a new set with `python3 tools/read_resumes.py`
+   and edit the matching entry below — the page reads nothing from the PDFs at
+   runtime, so a download and the text beside it only agree if both are updated.
+
+   Shape: competencies, selected impact and bullet ordering belong to a LENS
+   (they are identical in that lens's government and private editions); the
+   tagline and professional summary belong to an EDITION. */
 
 const PROFILE = {
   name: 'William G. Lewis',
@@ -9,7 +17,7 @@ const PROFILE = {
   phone: '334-652-2601',
   linkedin: { url: 'https://linkedin.com/in/williamlewis06', label: 'linkedin.com/in/williamlewis06' },
   github: { url: 'https://github.com/aws-dev-wgl', label: 'github.com/aws-dev-wgl' },
-  clearance: 'Active Top Secret (TS) · SCI Eligible · IT-1 · AWS GovCloud IL2–IL6'
+  clearance: 'Active Top Secret (TS) Clearance · SCI Eligible · IT-1 · Security+ (DoD 8140/8570 IAT Level II) · AWS GovCloud IL2-IL6'
 };
 
 const SECTORS = {
@@ -18,194 +26,317 @@ const SECTORS = {
 };
 
 /* ---------------------------------------------------------------------------
-   Role lenses. Each lens carries one or two editions (government / private),
-   mirroring the resume variants. Switching the lens re-tints and re-renders
-   the summary, competencies, impact cards, skill emphasis and resume download.
+   Role lenses. Five tracks, each with a government and a private-sector
+   edition. The lens drives the hero, summary, competencies, impact, capability
+   list, bullet ordering, page accent, and which resume is offered.
 --------------------------------------------------------------------------- */
 const LENSES = [
   {
     id: 'platform',
     label: 'Cloud Platform',
+    title: 'Principal Cloud & Platform Engineer',
     accent: '#F2A93B',
-    blurb: 'Multi-account AWS platforms, IaC, and production ownership.',
+    accentInk: '#8A5605',
+    blurb: 'Multi-account AWS platforms, infrastructure as code, and technical ownership.',
+    competencies: [
+      { group: 'Platform Architecture', items: ['AWS', 'AWS GovCloud', 'EC2', 'VPC', 'Transit Gateway', 'IAM', 'Lambda', 'S3', 'ECS', 'RDS', 'multi-account and multi-region delivery'] },
+      { group: 'Infrastructure as Code', items: ['Terraform', 'CloudFormation', 'Ansible', 'reusable modules', 'environment redeployment', 'CIDR enforcement'] },
+      { group: 'Platform Delivery', items: ['GitLab CI/CD', 'Jenkins', 'Docker', 'Amazon ECR', 'Kubernetes/EKS', 'GitOps', 'cross-domain code promotion'] },
+      { group: 'Observability', items: ['OpenSearch', 'Fluent Bit', 'CloudWatch', 'OpenSearch Dashboards', 'Dynatrace', 'SIEM pipelines'] },
+      { group: 'Security', items: ['Zero Trust Architecture', 'AppGate SDP', 'Palo Alto NGFW', 'IAM', 'WAF', 'GuardDuty', 'KMS', 'CloudTrail', 'NIST RMF'] },
+      { group: 'Engineering', items: ['Python', 'Bash', 'PowerShell', 'Boto3', 'RESTful APIs', 'YAML', 'JSON', 'Agile Scrum leadership'] },
+    ],
+    impact: [
+      { title: 'Classified Platform Ownership',
+        body: 'Directed engineering across Zero Trust networking, NGFW operations, CI/CD automation, SIEM observability, and ATO compliance from initial IATT through production hardening and customer onboarding.' },
+      { title: 'Reusable Platform Standards',
+        body: 'Standardized Terraform deployment scripts with CIDR enforcement and environment-variable injection, reducing estimated deployment errors by 60-70% and eliminating manual provisioning overhead.' },
+      { title: 'Mission-Customer Expansion',
+        body: 'Assessed onboarding process gaps, created the IL4/IL5 onboarding epic, and delivered a repeatable architecture enabling new mission-customer expansion on the CNAP platform.' },
+    ],
+    /* Each edition leads with the bullet its resume leads with. */
+    bulletOrder: {
+      oteemo: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      bakertilly: [0, 1, 2],
+      saic: [0, 1, 2, 3, 4, 5, 6],
+      directviz: [0, 1],
+      leidos: [0, 1, 2],
+    },
     editions: {
       private: {
-        title: 'Principal Cloud & Platform Engineer',
-        tagline: 'AWS · Platform Engineering · DevSecOps',
-        summary: 'Senior cloud and platform engineer with 7+ years building AWS infrastructure, automation, observability, and secure delivery platforms. Brings practical ownership from multi-account cloud migration through production platform operations and AI-enabled infrastructure.',
-        competencies: ['AWS', 'Terraform', 'CloudFormation', 'Ansible', 'Kubernetes/EKS', 'Docker', 'GitLab CI/CD', 'Jenkins', 'OpenSearch', 'CloudWatch', 'RDS', 'Python', 'Bash', 'Platform Automation'],
-        impact: [
-          { title: 'Multi-Account Platform Automation', body: 'Automated multi-account AWS delivery with Terraform, CloudFormation, Ansible, Git, and Jenkins across 24 environments.' },
-          { title: 'Commercial Cloud Modernization', body: 'Migrated customer infrastructure to AWS through modular Terraform and created resilient backup and container delivery patterns.' }
-        ],
-        file: 'William-G-Lewis_Principal-Cloud-Platform-Engineer.docx'
+        tagline: 'AWS · Platform Engineering · Infrastructure Automation',
+        summary: 'Principal-level Cloud and Platform Engineer with 7+ years of experience across AWS architecture, Infrastructure as Code, CI/CD, containers, observability, security, migration, and production operations. Provides technical ownership while building reusable Terraform patterns, multi-account delivery automation, cross-account backup workflows, and monitoring systems. Brings architecture-level judgment without losing the hands-on depth required to make platform standards work in production.',
+        file: 'William-G-Lewis_Principal-Cloud-Platform-Engineer.pdf'
       },
       gov: {
-        title: 'Principal Cloud & Platform Engineer',
-        tagline: 'AWS GovCloud · DevSecOps',
-        summary: 'Senior cloud and platform engineer with 7+ years delivering secure AWS GovCloud platforms across IL2–IL6. Combines hands-on Terraform, Kubernetes, CI/CD, observability, Zero Trust, and RMF expertise with technical ownership of complex mission platforms.',
-        competencies: ['AWS GovCloud (IL2–IL6)', 'Terraform', 'Ansible', 'CloudFormation', 'EKS', 'Docker', 'GitLab CI/CD', 'Jenkins', 'OpenSearch', 'CloudWatch', 'AppGate SDP', 'Palo Alto', 'NIST RMF', 'ATO'],
-        impact: [
-          { title: 'Classified Platform Engineering', body: 'Standardized Terraform deployment scripts, CIDR enforcement, and environment injection for a classified cloud stack; improved deployment consistency and reduced manual provisioning.' },
-          { title: 'IL4/IL5 Customer Onboarding', body: 'Defined a repeatable architecture and onboarding framework that enabled new mission-customer expansion on the platform.' }
-        ],
-        file: 'William-G-Lewis_Principal-Cloud-Platform-Engineer_Cleared.docx'
-      }
+        tagline: 'AWS GovCloud · Technical Leadership · DevSecOps',
+        summary: 'Principal-level Cloud and Platform Engineer with 7+ years of progressively responsible experience delivering secure AWS GovCloud environments across IL2-IL6. Serves as the primary technical owner of a classified platform spanning Terraform, cross-domain CI/CD, Zero Trust networking, Palo Alto NGFW operations, SIEM observability, AI infrastructure, customer onboarding, and RMF/ATO execution. Establishes reusable platform standards while remaining hands-on in implementation, troubleshooting, and operational handoff.',
+        file: 'William-G-Lewis_Principal-Cloud-Platform-Engineer_Cleared.pdf'
+      },
     }
   },
   {
     id: 'devsecops',
     label: 'DevSecOps',
+    title: 'Cloud & DevSecOps Architect',
     accent: '#3FBFA2',
-    blurb: 'Secure delivery standards, pipeline hardening, and change control.',
+    accentInk: '#0B6A55',
+    blurb: 'Secure delivery pipelines, compliance automation, and change control.',
+    competencies: [
+      { group: 'Cloud & IaC', items: ['AWS', 'AWS GovCloud', 'EC2', 'VPC', 'Transit Gateway', 'IAM', 'Lambda', 'S3', 'ECS', 'RDS', 'Terraform', 'CloudFormation', 'Ansible'] },
+      { group: 'CI/CD & DevOps', items: ['GitLab CI/CD', 'Jenkins', 'Docker', 'Amazon ECR', 'Kubernetes/EKS', 'GitOps', 'cross-domain code promotion'] },
+      { group: 'Security Engineering', items: ['AppGate SDP', 'Palo Alto NGFW', 'PAN-OS', 'IAM', 'WAF', 'GuardDuty', 'KMS', 'CloudTrail', 'ACAS', 'STIG', 'CIS Benchmarks'] },
+      { group: 'Compliance', items: ['NIST 800-53', 'DoD RMF', 'ATO', 'IATT', 'ConMon', 'POA&M', 'eMASS', 'IRP', 'VMP', 'CMP', 'SAR'] },
+      { group: 'Observability', items: ['OpenSearch', 'Fluent Bit', 'Lambda SIEM pipelines', 'CloudWatch', 'OpenSearch Dashboards', 'Dynatrace'] },
+      { group: 'Automation', items: ['Python', 'Bash', 'PowerShell', 'Boto3', 'RESTful APIs', 'YAML', 'JSON'] },
+    ],
+    impact: [
+      { title: 'Diode-Constrained CI/CD',
+        body: 'Architected a high-side GitLab CI/CD and versioned S3 cross-domain staging workflow for secure Infrastructure as Code promotion into an air-gapped environment where no off-the-shelf delivery solution existed.' },
+      { title: 'Repeatable Terraform Delivery',
+        body: 'Standardized per-component Terraform deployment scripts with CIDR enforcement and environment-variable injection, reducing estimated deployment errors by 60-70% and eliminating manual provisioning overhead.' },
+      { title: 'RMF & Authorization Execution',
+        body: 'Directed five IATT Test Plan sprint cycles, authored the ATO documentation suite, coordinated with ISSM and SCA-R stakeholders, and closed POA&Ms across ACAS, STIG, and AWS Foundations controls.' },
+    ],
+    /* Each edition leads with the bullet its resume leads with. */
+    bulletOrder: {
+      oteemo: [2, 1, 7, 0, 5, 9, 4, 6, 3, 8],
+      bakertilly: [0, 1, 2],
+      saic: [0, 1, 2, 3, 4, 5, 6],
+      directviz: [0, 1],
+      leidos: [0, 1, 2],
+    },
     editions: {
       private: {
-        title: 'Cloud & DevSecOps Architect',
-        tagline: 'Secure Delivery · Automation',
-        summary: 'Cloud and DevSecOps architect who turns security, compliance, infrastructure automation, and developer delivery into scalable platform patterns. Strong in AWS, Terraform, CI/CD, Kubernetes, monitoring, and pragmatic cloud modernization.',
-        competencies: ['AWS', 'Terraform', 'CloudFormation', 'Ansible', 'GitLab CI/CD', 'Jenkins', 'Docker', 'Kubernetes', 'IAM', 'KMS', 'CloudTrail', 'GuardDuty', 'Security Automation', 'DevSecOps'],
-        impact: [
-          { title: 'Secure Delivery Standards', body: 'Created reusable IaC patterns and deployment documentation covering version control, branching, environment redeployment, and production change control.' },
-          { title: 'Cloud Security Modernization', body: 'Led TLS modernization and vulnerability remediation across environments while protecting availability and delivery schedules.' }
-        ],
-        file: 'William-G-Lewis_Cloud-DevSecOps-Architect.docx'
-      }
+        tagline: 'AWS · Infrastructure as Code · Secure Delivery',
+        summary: 'Cloud and DevSecOps Architect with 7+ years of experience connecting AWS architecture, Infrastructure as Code, CI/CD, containers, security, observability, and production operations. Built reusable Terraform deployment patterns that reduced estimated deployment errors by 60-70%, led multi-region cloud migration work, and delivered automation across 24 AWS accounts. Brings hands-on engineering depth to platform standards, secure delivery, modernization, and operational readiness.',
+        file: 'William-G-Lewis_Cloud-DevSecOps-Architect.pdf'
+      },
+      gov: {
+        tagline: 'AWS GovCloud · Secure CI/CD · RMF',
+        summary: 'Cloud and DevSecOps Architect with 7+ years of experience engineering secure AWS platforms and delivery systems, including classified AWS GovCloud environments across IL2-IL6. Owns the intersection of Terraform, cross-domain GitLab CI/CD, container delivery, Zero Trust networking, observability, security-control implementation, and RMF/ATO execution. Designs repeatable platform patterns that continue to work under diode restrictions, air gaps, and high-assurance operational constraints.',
+        file: 'William-G-Lewis_Cloud-DevSecOps-Architect_Cleared.pdf'
+      },
+    }
+  },
+  {
+    id: 'sre',
+    label: 'SRE & Reliability',
+    title: 'Cloud SRE & Platform Reliability Engineer',
+    accent: '#5AA9E6',
+    accentInk: '#1F5C8C',
+    blurb: 'Availability, observability, incident response, and toil reduction.',
+    competencies: [
+      { group: 'Reliability Engineering', items: ['Availability validation', 'incident triage', 'patching', 'operational readiness', 'service-level agreement support', 'toil reduction'] },
+      { group: 'Observability', items: ['CloudWatch', 'CloudWatch Canaries', 'OpenSearch', 'Fluent Bit', 'OpenSearch Dashboards', 'Dynatrace', 'Amazon SNS', 'Microsoft Teams alerting'] },
+      { group: 'Cloud & Platform', items: ['AWS', 'AWS GovCloud', 'EC2', 'Elastic Beanstalk', 'VPC', 'IAM', 'Lambda', 'S3', 'RDS', 'Terraform', 'CloudFormation'] },
+      { group: 'Automation', items: ['PowerShell', 'Ansible', 'Jenkins', 'GitLab CI/CD', 'Python', 'Bash', 'Boto3'] },
+      { group: 'Systems', items: ['Red Hat Enterprise Linux', 'Solaris 10', 'Docker', 'Kubernetes/EKS', 'Active Directory'] },
+      { group: 'Security Operations', items: ['ACAS', 'STIG', 'TLS remediation', 'Palo Alto NGFW', 'SIEM', 'NIST RMF'] },
+    ],
+    impact: [
+      { title: 'Availability Automation',
+        body: 'Automated application availability validation using PowerShell, Ansible, and Jenkins and developed SSL-certificate monitoring, supporting systems governed by a 99.99999% uptime service-level agreement.' },
+      { title: 'Operational Observability',
+        body: 'Designed the program\'s first end-to-end Fluent Bit-to-OpenSearch SIEM pipeline with IAM authentication, index architecture, and dashboards; also built CloudWatch uptime monitoring for Elastic Beanstalk and EC2.' },
+      { title: 'Proactive Detection',
+        body: 'Designed CloudWatch Canaries and Amazon SNS-to-Microsoft Teams alerting, reducing mean time to detection for infrastructure incidents.' },
+    ],
+    /* Each edition leads with the bullet its resume leads with. */
+    bulletOrder: {
+      oteemo: [4, 0, 1, 6, 2, 7, 5, 9, 3, 8],
+      bakertilly: [0, 1, 2],
+      saic: [0, 1, 2, 3, 4, 5, 6],
+      directviz: [0, 1],
+      leidos: [0, 1, 2],
+    },
+    editions: {
+      private: {
+        tagline: 'AWS · Observability · Reliability Automation',
+        summary: 'Cloud Site Reliability and Platform Engineer with 7+ years of experience improving AWS availability, observability, automation, incident response, and production readiness. Built CloudWatch Canaries, dashboards, Active Directory reporting, repeatable availability checks, and OpenSearch telemetry while supporting systems governed by a 99.99999% uptime service-level agreement. Reduces operational toil by replacing repetitive validation and provisioning work with dependable automation.',
+        file: 'William-G-Lewis_Cloud-SRE-Platform-Reliability.pdf'
+      },
+      gov: {
+        tagline: 'AWS GovCloud · Observability · Mission Reliability',
+        summary: 'Cloud Site Reliability and Platform Engineer with 7+ years of experience supporting high-availability mission systems and secure AWS GovCloud platforms. Automates availability validation, builds SIEM and operational telemetry, performs Tier 2/3 incident triage, and strengthens reliability through Infrastructure as Code, CI/CD, patching, vulnerability remediation, and operational documentation. Supported systems governed by a 99.99999% uptime service-level agreement and now owns reliability across a classified IL6 platform.',
+        file: 'William-G-Lewis_Cloud-SRE-Platform-Reliability_Cleared.pdf'
+      },
     }
   },
   {
     id: 'ai',
     label: 'AI Infrastructure',
+    title: 'AI Infrastructure & LLMOps Engineer',
     accent: '#A98CE8',
-    blurb: 'Model serving, RAG retrieval, and GPU platform foundations.',
+    accentInk: '#59389E',
+    blurb: 'Private model serving, RAG retrieval, and GPU platform foundations.',
+    competencies: [
+      { group: 'AI Infrastructure', items: ['Local LLM inference', 'Ollama', 'GPU EC2', 'NVIDIA T4', 'Open WebUI', 'FastAPI', 'AWS Bedrock'] },
+      { group: 'RAG & Search', items: ['Retrieval-Augmented Generation', 'OpenSearch retrieval', 'query-generation pipelines', 'OpenSearch Dashboards'] },
+      { group: 'Cloud & IaC', items: ['AWS GovCloud', 'EC2', 'VPC', 'IAM', 'Lambda', 'API Gateway', 'DynamoDB', 'S3', 'ECS', 'RDS', 'Terraform', 'CloudFormation', 'Ansible'] },
+      { group: 'Platform Delivery', items: ['GitLab CI/CD', 'Jenkins', 'Docker', 'Amazon ECR', 'Kubernetes/EKS', 'GitOps', 'cross-domain code promotion'] },
+      { group: 'Observability', items: ['OpenSearch', 'Fluent Bit', 'CloudWatch', 'Lambda SIEM pipelines', 'Dynatrace'] },
+      { group: 'Languages & APIs', items: ['Python', 'Bash', 'PowerShell', 'Boto3', 'RESTful APIs', 'YAML', 'JSON'] },
+    ],
+    impact: [
+      { title: 'CNAP Log Analyst Agent',
+        body: 'Pioneered and deployed a production GPU-backed local LLM inference platform in an air-gapped DoD environment with zero commercial cloud dependency; integrated OpenSearch RAG for natural- language investigation of Palo Alto and AppGate security data, resolved a production credential-rotation defect, and delivered operational documentation for classified handoff.' },
+      { title: 'CNAP AI SIEM Chatbot',
+        body: 'Designed the architecture and proof of concept for a classified AI security-intelligence chatbot; defined the LLM integration layer, OpenSearch query-generation pipeline, and GovCloud deployment model, then presented the design to C1 Cohort leadership and secured go/no-go approval for AI VPC expansion.' },
+      { title: 'AI Cloud Sentiment Analysis & Summarizer',
+        body: 'Built a serverless transcript-analysis platform with AWS Bedrock, Lambda, DynamoDB, and API Gateway, generating structured AI summaries through a REST API and reducing latency by 50% through architecture optimization.' },
+    ],
+    /* Each edition leads with the bullet its resume leads with. */
+    bulletOrder: {
+      oteemo: [8, 4, 7, 2, 1, 0, 5, 9, 6, 3],
+      bakertilly: [0, 1, 2],
+      saic: [0, 1, 2, 3, 4, 5, 6],
+      directviz: [0, 1],
+      leidos: [0, 1, 2],
+    },
     editions: {
       private: {
-        title: 'AI Infrastructure & LLMOps Engineer',
-        tagline: 'AWS · RAG Platforms',
-        summary: 'AI infrastructure and LLMOps engineer who builds production-ready model-serving, RAG, and cloud-platform foundations. Combines AWS, GPU infrastructure, OpenSearch, FastAPI, automation, and observability with proven platform-engineering experience.',
-        competencies: ['LLMOps', 'RAG', 'AWS Bedrock', 'GPU EC2', 'Ollama', 'OpenSearch', 'FastAPI', 'Docker', 'Terraform', 'Kubernetes', 'CI/CD', 'CloudWatch', 'Python', 'Boto3'],
-        impact: [
-          { title: 'Serverless AI Summarizer', body: 'Built an AWS Bedrock, Lambda, DynamoDB, and API Gateway transcript-analysis service that generated structured summaries and reduced latency by 50%.' },
-          { title: 'Private LLM Operations', body: 'Designed an operational model-serving stack with GPU compute, retrieval, telemetry, and secure deployment automation.' }
-        ],
-        file: 'William-G-Lewis_AI-Infrastructure-LLMOps-Engineer.docx'
-      }
+        tagline: 'AWS · Model Serving · Retrieval-Augmented Generation',
+        summary: 'AI Infrastructure and LLMOps Engineer with 7+ years of cloud and platform engineering experience building operational model-serving, retrieval-augmented generation, and AWS platform foundations. Delivered GPU-backed private LLM infrastructure, OpenSearch retrieval, and a serverless AWS Bedrock transcript-analysis service that reduced latency by 50%. Connects AI workloads to the production systems they depend on: compute, APIs, automation, CI/CD, observability, networking, security, and operational handoff.',
+        file: 'William-G-Lewis_AI-Infrastructure-LLMOps-Engineer.pdf'
+      },
+      gov: {
+        tagline: 'Classified AI Platforms · AWS GovCloud · RAG',
+        summary: 'AI Infrastructure and LLMOps Engineer with 7+ years of cloud and platform engineering experience and hands-on ownership of private large language model inference, retrieval-augmented generation, GPU-backed compute, and security telemetry in air-gapped AWS GovCloud environments. Pioneered a program\'s first operational AI security capability and designed an executive proof of concept for classified AI-enabled investigation. Combines model- serving infrastructure with Terraform, GitLab CI/CD, OpenSearch, Docker, observability, security controls, and operational documentation.',
+        file: 'William-G-Lewis_AI-Infrastructure-LLMOps-Engineer_Cleared.pdf'
+      },
     }
   },
   {
     id: 'zerotrust',
     label: 'Zero Trust Security',
+    title: 'Cloud Security & Zero Trust Architect',
     accent: '#E4715C',
-    blurb: 'SDP, NGFW lifecycle, and RMF/ATO execution in GovCloud.',
+    accentInk: '#A33420',
+    blurb: 'Software-defined perimeter, NGFW lifecycle, and RMF/ATO execution.',
+    competencies: [
+      { group: 'Zero Trust & Network Security', items: ['Zero Trust Architecture', 'microsegmentation', 'AppGate SDP', 'Palo Alto NGFW', 'PAN-OS', 'firewall policy governance'] },
+      { group: 'AWS Security', items: ['IAM', 'WAF', 'GuardDuty', 'KMS', 'CloudTrail', 'VPC', 'Transit Gateway', 'AWS GovCloud'] },
+      { group: 'Security Controls', items: ['STIG', 'ACAS', 'CIS Benchmarks', 'SCAP', 'vulnerability remediation', 'TLS modernization'] },
+      { group: 'Compliance', items: ['NIST 800-53', 'DoD RMF', 'ATO', 'IATT', 'ConMon', 'POA&M', 'eMASS', 'IRP', 'VMP', 'CMP', 'SAR'] },
+      { group: 'Security Observability', items: ['OpenSearch', 'Fluent Bit', 'Lambda SIEM pipelines', 'CloudWatch', 'OpenSearch Dashboards'] },
+      { group: 'Automation & Delivery', items: ['Terraform', 'CloudFormation', 'Ansible', 'GitLab CI/CD', 'Jenkins', 'Docker', 'Python', 'PowerShell', 'Bash'] },
+    ],
+    impact: [
+      { title: 'AppGate Zero Trust Deployment',
+        body: 'Led AppGate Controller, Portal, and Gateway deployment and hardening across TEST and PROD, configuring entitlement governance, CIS Benchmark controls, and SCAP-validated posture for mission-customer onboarding.' },
+      { title: 'Palo Alto NGFW Governance',
+        body: 'Governed licensing, PAN-OS upgrades from 10.2.8 to 11.0.3, patching, and policy hardening across TEST and PROD while maintaining security compliance with zero unplanned downtime.' },
+      { title: 'Security Control Evidence',
+        body: 'Directed IATT execution and authored the ATO documentation suite while closing POA&Ms across ACAS, STIG, and AWS Foundations controls to deliver a compliant RMF package.' },
+    ],
+    /* Each edition leads with the bullet its resume leads with. */
+    bulletOrder: {
+      oteemo: [5, 6, 9, 4, 0, 7, 2, 1, 3, 8],
+      bakertilly: [0, 1, 2],
+      saic: [0, 1, 2, 3, 4, 5, 6],
+      directviz: [0, 1],
+      leidos: [0, 1, 2],
+    },
     editions: {
+      private: {
+        tagline: 'AWS Security · Identity · Network Protection',
+        summary: 'Cloud Security and Zero Trust Architect with 7+ years of experience across identity, network protection, encryption, audit logging, vulnerability remediation, Infrastructure as Code, and observability in AWS platforms. Led Zero Trust and next-generation firewall hardening, maintained security compliance through platform upgrades with zero unplanned downtime, and delivered TLS modernization across production environments. Combines security architecture with hands-on cloud and platform engineering.',
+        file: 'William-G-Lewis_Cloud-Security-Zero-Trust-Architect.pdf'
+      },
       gov: {
-        title: 'Cloud Security & Zero Trust Architect',
-        tagline: 'AWS GovCloud',
-        summary: 'Cloud security and Zero Trust architect with deep experience securing AWS GovCloud environments through AppGate SDP, Palo Alto NGFW, IAM, STIG/CIS controls, vulnerability management, and RMF/ATO execution. Pairs architecture ownership with hands-on automation and operations.',
-        competencies: ['Zero Trust Architecture', 'AppGate SDP', 'Palo Alto NGFW', 'PAN-OS', 'AWS GovCloud', 'IAM', 'STIG', 'CIS Benchmarks', 'ACAS', 'SCAP', 'NIST 800-53', 'RMF', 'ATO', 'eMASS'],
-        impact: [
-          { title: 'AppGate Zero Trust Deployment', body: 'Led AppGate Controller, Portal, and Gateway implementation across TEST and PROD, including entitlement governance, hardening, and validated baseline controls.' },
-          { title: 'NGFW Lifecycle Ownership', body: 'Governed Palo Alto licensing, PAN-OS upgrades, patching, and policy hardening across environments with zero unplanned downtime.' }
-        ],
-        file: 'William-G-Lewis_Cloud-Security-Zero-Trust-Architect_Cleared.docx'
-      }
+        tagline: 'AWS GovCloud · AppGate SDP · Palo Alto NGFW',
+        summary: 'Cloud Security and Zero Trust Architect with 7+ years of cloud engineering experience and hands-on ownership of classified AWS GovCloud security across IL2-IL6. Leads AppGate Software-Defined Perimeter deployment, Palo Alto NGFW lifecycle and policy hardening, IAM-integrated SIEM telemetry, vulnerability remediation, STIG/CIS control validation, and RMF/ATO execution. Converts architecture and NIST 800-53 requirements into implemented, testable, and operational security controls.',
+        file: 'William-G-Lewis_Cloud-Security-Zero-Trust-Architect_Cleared.pdf'
+      },
     }
-  }
+  },
 ];
 
 /* ---------------------------------------------------------------------------
-   Career history. Where the resume editions phrase a role differently for
-   government and private-sector audiences, both phrasings are kept.
+   Career history. Role, organisation, dates, stack and bullet text are the same
+   in all ten editions — only the order of the bullets changes, which each
+   lens's `bulletOrder` above supplies.
 --------------------------------------------------------------------------- */
 const EXPERIENCE = [
   {
     id: 'oteemo',
     org: 'SAIC / Oteemo',
-    start: '2023-11', end: null,
+    program: 'CNAP Program, Gunter AFB',
+    role: 'Lead Cloud & Platform Engineer, IL6 Technical Lead (Platform & Security Architecture)',
     period: 'Nov 2023 — Present',
     current: true,
-    role: { private: 'Lead Cloud & Platform Engineer', gov: 'Lead Cloud & Platform Engineer, IL6 Technical Lead' },
-    context: { private: 'Secure cloud platform delivery', gov: 'CNAP Program · Gunter AFB' },
-    bullets: {
-      private: [
-        'Lead secure cloud-platform delivery across infrastructure automation, Kubernetes-ready application delivery, observability, network security, and compliance engineering.',
-        'Designed reusable Terraform deployment patterns and CI/CD workflows that reduced manual provisioning effort and deployment errors by an estimated 60–70%.',
-        'Built an OpenSearch and Fluent Bit observability pipeline and operational dashboards that improved visibility into application and security telemetry.',
-        'Delivered a private GPU-backed LLM and RAG environment for natural-language investigation of operational data.'
-      ],
-      gov: [
-        'Own the technical delivery of an IL6 cloud platform spanning Zero Trust networking, Palo Alto NGFW operations, Terraform automation, CI/CD, SIEM observability, and RMF/ATO execution.',
-        'Architected a diode-constrained GitLab CI/CD workflow and versioned S3 staging pattern for secure Infrastructure as Code promotion into an air-gapped environment.',
-        "Built the program's first operational AI security capability: GPU-backed local LLM inference with OpenSearch RAG for natural-language security investigation.",
-        'Led AppGate SDP hardening, CIS and SCAP control validation, IATT execution, and ATO documentation across TEST and PROD.'
-      ]
-    },
-    stack: ['Terraform', 'GitLab CI/CD', 'Kubernetes', 'OpenSearch', 'Fluent Bit', 'AppGate SDP', 'Palo Alto NGFW', 'GPU EC2']
+    context: 'Platform & security architecture',
+    stack: ['AWS GovCloud (IL4/IL5/IL6)', 'AppGate SDP', 'Palo Alto NGFW (PAN-OS)', 'Terraform', 'GitLab CI/CD', 'OpenSearch', 'Fluent Bit', 'Ollama', 'NIST RMF'],
+    bullets: [
+      'Served as primary technical owner of the CNAP IL6 platform, directing engineering across Zero Trust networking, NGFW operations, CI/CD automation, SIEM observability, and ATO compliance from initial IATT through production hardening and customer onboarding.',
+      'Standardized Terraform Infrastructure as Code across the classified stack through per-component deployment scripts with CIDR enforcement and environment-variable injection, reducing estimated deployment errors by 60-70% and eliminating manual provisioning overhead.',
+      'Architected a high-side CI/CD pipeline for diode-constrained Infrastructure as Code delivery, engineering a versioned S3 cross-domain staging workflow that solved a classified automation problem with no off-the-shelf solution.',
+      'Established the IL4/IL5 customer onboarding framework: assessed process gaps, created the onboarding epic, and delivered a repeatable architecture enabling mission-customer expansion on the CNAP platform.',
+      'Designed and owned the program\'s classified SIEM pipeline from zero (Fluent Bit to OpenSearch) with IAM-based authentication, index architecture, and operational dashboards, delivering the team\'s first end-to-end log visibility.',
+      'Led AppGate Software-Defined Perimeter deployment and Zero Trust hardening across TEST and PROD, configuring entitlement governance, CIS Benchmark controls, and SCAP-validated posture; established the operational Zero Trust baseline for SAOC customer onboarding.',
+      'Governed the Palo Alto NGFW lifecycle, including licensing, PAN-OS version upgrades (10.2.8 to 11.0.3), patching, and policy hardening across TEST and PROD simultaneously, maintaining security compliance with zero unplanned downtime.',
+      'Containerized and delivered hardened application stacks with Docker and Amazon ECR into the air-gapped IL6 environment in compliance with STIG and CIS Benchmark controls.',
+      'Pioneered the program\'s first AI-enabled security operations capability: deployed a local LLM inference platform in a classified, air-gapped environment, enabling natural-language investigation against live security log data, a capability with no prior program equivalent.',
+      'Directed IATT Test Plan execution across five sprint cycles, coordinating with ISSM and SCA-R, authoring the full ATO documentation suite (IRP, ConMon, VMP, CMP, SAR), and closing POA&Ms across ACAS, STIG, and AWS Foundations to deliver a compliant RMF package.',
+    ]
   },
   {
     id: 'bakertilly',
     org: 'Baker Tilly',
-    start: '2021-12', end: '2023-06',
+    role: 'Senior AWS Cloud Consultant',
     period: 'Dec 2021 — Jun 2023',
-    role: { private: 'Senior AWS Cloud Consultant', gov: 'Senior AWS Cloud Consultant' },
-    context: { private: 'Commercial cloud migration', gov: 'Commercial cloud migration' },
-    bullets: {
-      private: [
-        'Led a multi-region Rackspace-to-AWS migration using modular Terraform, standardizing secure provisioning across customer environments.',
-        'Built cross-account RDS backup automation, Docker image pipelines, and CloudWatch Canaries with Teams alerting to improve resilience and incident detection.'
-      ],
-      gov: [
-        'Led a multi-region Rackspace-to-AWS migration using modular Terraform, cross-account RDS backup automation, Docker image pipelines, and CloudWatch monitoring.'
-      ]
-    },
-    stack: ['Terraform', 'AWS', 'RDS', 'Docker', 'CloudWatch Canaries']
+    context: 'Commercial cloud migration',
+    stack: ['AWS Commercial', 'Terraform', 'CloudWatch', 'Docker', 'RDS', 'Multi-Region Migration'],
+    bullets: [
+      'Led a multi-region cloud migration from Rackspace to AWS using modular Terraform stacks, standardizing provisioning patterns and reducing manual configuration overhead across customer environments.',
+      'Built cross-account RDS backup automation and Docker image pipelines for ARM and x86, improving data resilience and standardizing secure CI/CD delivery.',
+      'Designed proactive monitoring through CloudWatch Canaries and Amazon SNS-to-Microsoft Teams integration, reducing mean time to detection for infrastructure incidents.',
+    ]
   },
   {
     id: 'saic',
     org: 'SAIC',
-    start: '2020-08', end: '2023-12',
+    role: 'Senior Cloud Engineer',
     period: 'Aug 2020 — Dec 2023',
-    role: { private: 'Senior Cloud Engineer', gov: 'Senior Cloud Engineer' },
-    context: { private: 'Multi-account AWS operations', gov: 'Multi-account AWS operations' },
-    bullets: {
-      private: [
-        'Deployed CloudFormation and Ansible changes across 24 AWS accounts and DEV/TEST/PROD environments using Git and Jenkins.',
-        'Automated application availability checks and Active Directory reporting with PowerShell, Ansible, and Jenkins; supported a 99.99999% availability SLA.',
-        'Improved platform security through patching, vulnerability remediation, TLS modernization, and CloudWatch service monitoring.'
-      ],
-      gov: [
-        'Delivered CloudFormation and Ansible changes across 24 AWS accounts and DEV/TEST/PROD environments using Git and Jenkins.',
-        'Automated availability validation and Active Directory reporting with PowerShell, Ansible, and Jenkins; supported a 99.99999% availability SLA.',
-        'Performed Tier 2/3 triage, ACAS scanning, emergency and scheduled patching, TLS 1.0-to-1.2 remediation, and Solaris 10 maintenance.'
-      ]
-    },
-    stack: ['CloudFormation', 'Ansible', 'Jenkins', 'PowerShell', 'Active Directory']
+    context: 'Multi-account AWS operations',
+    stack: ['AWS', 'CloudFormation', 'Ansible', 'Jenkins', 'Git', 'PowerShell', 'CloudWatch', 'Elastic Beanstalk', 'EC2', 'ACAS', 'F5', 'Solaris 10'],
+    bullets: [
+      'Drove Tier 2 and Tier 3 support triage by monitoring and troubleshooting problems, implementing scheduled and emergency patches, running ACAS scans, and executing engineering plans for application- and platform-level updates.',
+      'Deployed Infrastructure as Code changes across 24 AWS accounts and DEV/TEST/PROD environments using CloudFormation and Ansible, with Git for version control and Jenkins for continuous integration and delivery.',
+      'Developed an automated Active Directory user report for key government stakeholders using Jenkins, PowerShell, and Ansible.',
+      'Automated application availability validation using PowerShell, Ansible, and Jenkins, supporting a 99.99999% system uptime service-level agreement.',
+      'Created a CloudWatch uptime-monitoring dashboard for Elastic Beanstalk and EC2 performance, improving resource visibility and response times.',
+      'Led the TLS 1.0-to-1.2 transition across DEV/TEST/PROD environments, remediating F5 firewall findings and maintaining DoD cybersecurity compliance.',
+      'Administered patching and quality analysis for Solaris 10 systems through a complex multi-step procedure, maintaining compliance and availability for mission-critical ESB legacy systems.',
+    ]
   },
   {
     id: 'directviz',
     org: 'Direct Viz Solutions',
-    start: '2019-10', end: '2020-02',
+    role: 'RHEL Cloud System Administrator',
     period: 'Oct 2019 — Feb 2020',
-    role: { private: 'RHEL Cloud System Administrator', gov: 'RHEL Cloud System Administrator' },
-    context: { private: 'Linux platform operations', gov: 'Linux platform operations' },
+    context: 'Linux platform operations',
+    stack: ['Red Hat Enterprise Linux', 'Cloud Infrastructure', 'Middleware', 'OS Patching', 'Performance Monitoring'],
     bullets: [
-      'Managed cloud infrastructure services, middleware and OS updates, and performance monitoring for reliable platform operations.'
-    ],
-    stack: ['RHEL', 'Middleware', 'Performance monitoring']
+      'Managed cloud infrastructure services, applying middleware and operating-system updates while identifying and resolving performance inefficiencies.',
+      'Developed, configured, and supported cloud platforms and infrastructure for optimal performance and reliability.',
+    ]
   },
   {
     id: 'leidos',
     org: 'Leidos',
-    start: '2018-06', end: '2019-10',
+    role: 'Cloud System Integrator',
     period: 'Jun 2018 — Oct 2019',
-    role: { private: 'Cloud System Integrator', gov: 'Cloud System Integrator' },
-    context: { private: '24/7 high-availability operations', gov: '24/7 high-availability operations' },
+    context: '24/7 high-availability operations',
+    stack: ['Cloud Migration', 'Configuration Management Database', 'SSL/TLS Monitoring', 'Application Support', '24/7 Operations'],
     bullets: [
-      'Supported application migration, CMDB development, SSL certificate monitoring, and 24/7 operations for highly available systems.'
-    ],
-    stack: ['Application migration', 'CMDB', 'SSL lifecycle']
-  }
+      'Collaborated with technical leads to support application migrations and provided 24/7 operational support to maintain customer service and system availability.',
+      'Built a Configuration Management Database to track resources, reduce downtime, and improve patching efficiency.',
+      'Developed a system to monitor expiring SSL certificates, maintaining continuous compliance and supporting a 99.99999% availability service-level agreement.',
+    ]
+  },
 ];
-
 /* ---------------------------------------------------------------------------
    Metrics. `text` values are shown verbatim; numeric values count up on scroll.
 --------------------------------------------------------------------------- */
@@ -217,151 +348,6 @@ const METRICS = [
   { text: '99.99999%', label: 'Availability SLA supported', note: 'Automated validation & reporting' },
   { text: 'IL2–IL6', label: 'AWS GovCloud impact levels delivered', note: 'Up to air-gapped IL6', sector: 'gov' }
 ];
-
-/* ---------------------------------------------------------------------------
-   Capability matrix. `lenses` marks which role lens emphasizes each skill.
---------------------------------------------------------------------------- */
-const SKILL_DOMAINS = [
-  {
-    id: 'cloud', name: 'Cloud Platform', note: 'Commercial and GovCloud',
-    skills: [
-      { n: 'AWS', l: ['platform', 'devsecops', 'ai', 'zerotrust'] },
-      { n: 'AWS GovCloud (IL2–IL6)', l: ['platform', 'zerotrust'] },
-      { n: 'EC2 / GPU EC2', l: ['platform', 'ai'] },
-      { n: 'Lambda', l: ['ai'] },
-      { n: 'API Gateway', l: ['ai'] },
-      { n: 'DynamoDB', l: ['ai'] },
-      { n: 'RDS', l: ['platform'] },
-      { n: 'VPC / Transit Gateway', l: ['platform', 'zerotrust'] },
-      { n: 'ECS / ECR', l: ['platform', 'devsecops'] },
-      { n: 'S3 (versioned staging)', l: ['platform', 'devsecops'] },
-      { n: 'IAM', l: ['devsecops', 'zerotrust'] },
-      { n: 'KMS', l: ['devsecops'] }
-    ]
-  },
-  {
-    id: 'iac', name: 'Infrastructure as Code', note: 'Repeatable, reviewable delivery',
-    skills: [
-      { n: 'Terraform', l: ['platform', 'devsecops', 'ai', 'zerotrust'] },
-      { n: 'CloudFormation', l: ['platform', 'devsecops'] },
-      { n: 'Ansible', l: ['platform', 'devsecops'] },
-      { n: 'Python / Boto3', l: ['platform', 'ai'] },
-      { n: 'YAML / JSON', l: ['platform', 'devsecops'] },
-      { n: 'RESTful APIs', l: ['ai'] },
-      { n: 'Bash', l: ['platform'] },
-      { n: 'PowerShell', l: ['platform'] }
-    ]
-  },
-  {
-    id: 'delivery', name: 'Delivery & Orchestration', note: 'Pipelines and runtime',
-    skills: [
-      { n: 'GitLab CI/CD', l: ['platform', 'devsecops', 'zerotrust'] },
-      { n: 'Jenkins', l: ['platform', 'devsecops'] },
-      { n: 'Git', l: ['platform', 'devsecops'] },
-      { n: 'Docker', l: ['platform', 'devsecops', 'ai'] },
-      { n: 'Kubernetes / EKS', l: ['platform', 'devsecops', 'ai'] },
-      { n: 'GitOps', l: ['devsecops'] },
-      { n: 'Cross-domain code promotion', l: ['devsecops', 'zerotrust'] },
-      { n: 'Agile Scrum leadership', l: ['platform'] },
-      { n: 'Change control & branching standards', l: ['devsecops'] }
-    ]
-  },
-  {
-    id: 'observability', name: 'Observability', note: 'Application and security telemetry',
-    skills: [
-      { n: 'OpenSearch', l: ['platform', 'ai', 'zerotrust'] },
-      { n: 'Fluent Bit', l: ['platform', 'zerotrust'] },
-      { n: 'CloudWatch', l: ['platform', 'devsecops', 'ai'] },
-      { n: 'CloudWatch Canaries', l: ['platform'] },
-      { n: 'SIEM dashboards', l: ['zerotrust'] },
-      { n: 'OpenSearch Dashboards', l: ['platform', 'zerotrust'] },
-      { n: 'Dynatrace', l: ['platform'] },
-      { n: 'Teams alerting', l: ['platform'] }
-    ]
-  },
-  {
-    id: 'security', name: 'Security & Zero Trust', note: 'Edge, identity, and hardening',
-    skills: [
-      { n: 'Zero Trust architecture', l: ['zerotrust'] },
-      { n: 'AppGate SDP', l: ['zerotrust', 'platform'] },
-      { n: 'Palo Alto NGFW / PAN-OS', l: ['zerotrust', 'platform'] },
-      { n: 'CloudTrail', l: ['devsecops'] },
-      { n: 'GuardDuty', l: ['devsecops'] },
-      { n: 'TLS modernization', l: ['devsecops'] },
-      { n: 'Vulnerability remediation', l: ['devsecops', 'zerotrust'] },
-      { n: 'Security automation', l: ['devsecops'] },
-      { n: 'Microsegmentation', l: ['zerotrust'] },
-      { n: 'WAF', l: ['devsecops'] },
-      { n: 'F5', l: [] }
-    ]
-  },
-  {
-    id: 'compliance', name: 'Compliance & Authorization', note: 'Evidence that stands up to an assessor',
-    skills: [
-      { n: 'NIST 800-53', l: ['zerotrust'] },
-      { n: 'RMF', l: ['zerotrust', 'platform'] },
-      { n: 'ATO / IATT', l: ['zerotrust', 'platform'] },
-      { n: 'eMASS', l: ['zerotrust'] },
-      { n: 'STIG', l: ['zerotrust'] },
-      { n: 'CIS Benchmarks', l: ['zerotrust'] },
-      { n: 'ACAS', l: ['zerotrust'] },
-      { n: 'SCAP', l: ['zerotrust'] },
-      { n: 'DoD 8140 / 8570 IAT II', l: ['zerotrust'] },
-      { n: 'ConMon / cATO readiness', l: ['zerotrust'] },
-      { n: 'POA&M', l: ['zerotrust'] },
-      { n: 'IRP · VMP · CMP · SAR', l: ['zerotrust'] }
-    ]
-  },
-  {
-    id: 'ai', name: 'AI Infrastructure & LLMOps', note: 'Serving, retrieval, and evaluation plumbing',
-    skills: [
-      { n: 'AWS Bedrock', l: ['ai'] },
-      { n: 'Retrieval-augmented generation (RAG)', l: ['ai', 'zerotrust'] },
-      { n: 'Ollama', l: ['ai'] },
-      { n: 'Local / private model serving', l: ['ai', 'zerotrust'] },
-      { n: 'FastAPI', l: ['ai'] },
-      { n: 'GPU compute provisioning', l: ['ai'] },
-      { n: 'Inference telemetry', l: ['ai'] },
-      { n: 'Open WebUI', l: ['ai'] },
-      { n: 'NVIDIA T4 inference', l: ['ai'] }
-    ]
-  },
-  {
-    id: 'systems', name: 'Systems & Operations', note: 'The layer underneath the platform',
-    skills: [
-      { n: 'RHEL', l: ['platform'] },
-      { n: 'Solaris 10', l: [] },
-      { n: 'Active Directory', l: ['platform'] },
-      { n: 'Middleware & OS patching', l: ['platform', 'devsecops'] },
-      { n: 'CMDB', l: [] },
-      { n: 'SSL certificate lifecycle', l: ['devsecops'] },
-      { n: 'Tier 2/3 incident triage', l: ['zerotrust'] }
-    ]
-  }
-];
-
-const CREDENTIALS = [
-  { name: 'AWS Certified Solutions Architect – Associate', meta: 'Amazon Web Services · 2022', kind: 'cert' },
-  { name: 'AWS Certified SysOps Administrator – Associate', meta: 'Amazon Web Services · 2023', kind: 'cert' },
-  { name: 'CompTIA Security+ CE', meta: 'Active', kind: 'cert' },
-  { name: 'AWS Certified AI Practitioner', meta: 'In progress', kind: 'cert' },
-  { name: 'Active Top Secret (TS) Clearance', meta: 'SCI Eligible · IT-1', kind: 'clearance' },
-  { name: 'DoD 8140 / 8570 IAT Level II', meta: 'Compliant', kind: 'clearance' },
-  { name: 'B.S. Computer Science', meta: 'Alabama State University · Cum Laude · December 2018', kind: 'education' }
-];
-
-/* ---------------------------------------------------------------------------
-   The master resume: the complete, full-detail document the tailored editions
-   above are cut from. Always available, whichever lens is selected.
---------------------------------------------------------------------------- */
-const MASTER = {
-  badge: 'Master edition · full detail',
-  title: 'Lead Cloud & Platform Engineer',
-  tagline: 'Cloud Security & Zero Trust · AI Infrastructure · DevSecOps',
-  summary: 'Senior cloud and platform engineer with 7+ years of ownership in classified AWS GovCloud environments (IL2–IL6) and an active Top Secret clearance. Directed the full engineering lifecycle of a DoD CNAP program: Zero Trust architecture deployment, diode-constrained CI/CD, SIEM observability, and ATO compliance execution under NIST 800-53 and DoD RMF. Pioneered the program\u2019s first operational AI capability — a local LLM inference platform for security investigation in an air-gapped classified environment.',
-  note: 'Every project, every bullet, nothing trimmed for length. Start here if you want the complete picture.',
-  file: 'William-G-Lewis_Complete-Resume.docx'
-};
 
 /* The classified-environment spec sheet from the master resume. */
 const CLASSIFIED_PROFILE = [
@@ -403,12 +389,6 @@ const PROJECTS = [
     body: 'Built on AWS Bedrock, Lambda, DynamoDB, and API Gateway, with a 50% latency reduction achieved through architecture optimization.',
     stack: ['AWS Bedrock', 'Lambda', 'DynamoDB', 'API Gateway', 'Python']
   }
-];
-
-const AFFILIATIONS = [
-  'Alpha Phi Alpha Fraternity, Inc. (2016–present)',
-  'National Society of Black Engineers (2018–present)',
-  'Scouting America (2023–present)'
 ];
 
 /* Architecture walkthrough: the IL6 platform, node by node. */
@@ -464,6 +444,39 @@ const ARCH_NODES = {
     body: 'Scanning and CIS/SCAP control validation feed the evidence trail behind IATT execution and ATO documentation across TEST and PROD.'
   }
 };
+/* ---------------------------------------------------------------------------
+   Certifications, clearance and education, as listed on every edition.
+--------------------------------------------------------------------------- */
+const CREDENTIALS = [
+  { name: 'AWS Certified Solutions Architect – Associate', meta: 'Amazon Web Services · 2022', kind: 'cert' },
+  { name: 'AWS Certified SysOps Administrator – Associate', meta: 'Amazon Web Services · 2023', kind: 'cert' },
+  { name: 'CompTIA Security+ CE', meta: 'Active', kind: 'cert' },
+  { name: 'AWS Certified AI Practitioner', meta: 'In progress', kind: 'cert' },
+  { name: 'Active Top Secret (TS) Security Clearance', meta: 'SCI Eligible · IT-1', kind: 'clearance' },
+  { name: 'DoD 8140 / 8570 IAT Level II', meta: 'Compliant', kind: 'clearance' },
+  { name: 'B.S. Computer Science', meta: 'Alabama State University · Cum Laude · December 2018', kind: 'education' }
+];
 
-const SITE = { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS, AFFILIATIONS,
-               EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES };
+const PUBLICATIONS = [
+  'Authored documentation defining Infrastructure as Code deployment best practices for GitHub, environment-redeployment procedures, and branching strategies for Infrastructure as Code environments.',
+  'Published articles on cloud infrastructure management and optimization techniques.'
+];
+
+const AFFILIATIONS = [
+  'Alpha Phi Alpha Fraternity, Inc. (2016–present)',
+  'National Society of Black Engineers (2018–present)',
+  'Scouting America (2023–present)'
+];
+
+/* The full-detail Word resume the tailored PDFs are cut from. */
+const MASTER = {
+  badge: 'Master edition · full detail',
+  title: 'Lead Cloud & Platform Engineer',
+  tagline: 'Cloud Security & Zero Trust · AI Infrastructure · DevSecOps',
+  summary: 'Senior cloud and platform engineer with 7+ years of ownership in classified AWS GovCloud environments (IL2–IL6) and an active Top Secret clearance. Directed the full engineering lifecycle of a DoD CNAP program: Zero Trust architecture deployment, diode-constrained CI/CD, SIEM observability, and ATO compliance execution under NIST 800-53 and DoD RMF.',
+  note: 'Every project and every bullet in one document, in Word format. The five tracks above are cut from this.',
+  file: 'William-G-Lewis_Complete-Resume.docx'
+};
+
+const SITE = { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS,
+               PUBLICATIONS, AFFILIATIONS, EXPERIENCE, METRICS, CREDENTIALS, ARCH_NODES };
