@@ -41,3 +41,9 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          # The branch-based builder gave up after ten minutes of
+          # updating_pages and cancelled the deploy, which is the default
+          # here too. Thirty minutes lets a slow publish finish instead of
+          # stranding the site on the previous build.
+          timeout: 1800000
