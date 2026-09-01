@@ -1,0 +1,52 @@
+name: Deploy to GitHub Pages
+
+# The site is static, so it is published exactly as it sits in the repository.
+# Owning the deploy here — rather than leaving it to the branch-based builder
+# Pages runs on its own — is what makes it re-runnable and dispatchable when a
+# publish times out on GitHub's side.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deploy finish rather than cancelling it, so a publish is
+# never interrupted halfway; queued runs collapse to the newest commit.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # enablement: true creates or enables the Pages site when one is missing,
+      # but it does not switch an existing Pages site from branch-based
+      # publishing to GitHub Actions. If the repo is still configured to publish
+      # from a branch, set the Pages source in repo settings before expecting this
+      # workflow to take over.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          # The branch-based builder gave up after ten minutes of
+          # updating_pages and cancelled the deploy, which is the default
+          # here too. Thirty minutes lets a slow publish finish instead of
+          # stranding the site on the previous build.
+          timeout: 1800000

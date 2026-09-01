@@ -8,9 +8,16 @@ dependency beyond the Google Fonts stylesheet.
 
 ## Deploying
 
-GitHub Pages, from `main`, root folder (Settings → Pages → deploy from branch).
-`.nojekyll` is committed so the `assets/` tree is served untouched. Nothing needs
-to be compiled first — what is in the repository is what gets served.
+GitHub Pages, published by `.github/workflows/pages.yml` on every push to `main`.
+Nothing needs to be compiled first — what is in the repository is what gets
+served, and the workflow uploads it verbatim, so Jekyll never sees it.
+
+The workflow enables Pages for this repository when needed, but it does not
+automatically switch an existing site from branch-based publishing to GitHub
+Actions. If the Pages source is still set to a branch, change it in the
+repository settings to GitHub Actions before expecting this workflow to publish
+that site. This workflow can still be re-run from the Actions tab, or started
+from **Actions → Deploy to GitHub Pages → Run workflow** without a new commit.
 
 ## What a visitor sees
 
@@ -106,6 +113,7 @@ resume-inbox/              staging area for new resume versions — see its READ
 tools/read_resumes.py      dumps the text of every .pdf/.docx in a folder
 tools/build_standalone.py  inlines CSS + JS into one portable HTML file
 .nojekyll                  serve assets/ verbatim on GitHub Pages
+.github/workflows/pages.yml  publishes the repository to GitHub Pages
 ```
 
 ## Editing content
