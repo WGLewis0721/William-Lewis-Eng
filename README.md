@@ -126,10 +126,10 @@ means editing that one file.
 | Export | Drives |
 | --- | --- |
 | `LENSES` | The five tracks: title, competencies, impact, `bulletOrder`, accent, and the two editions |
-| `MASTER` | The complete-resume card |
+| `MASTER` | The complete-resume entry in the register table |
 | `EXPERIENCE` | The timeline — shared across all ten editions |
 | `PROJECTS` | Signature work |
-| `METRICS` | The counters under the hero |
+| `METRICS` | The figures strip under the hero |
 | `CREDENTIALS`, `CLASSIFIED_PROFILE`, `PUBLICATIONS`, `AFFILIATIONS` | Credentials |
 | `ARCH_NODES` | The text for each diagram component |
 
@@ -145,14 +145,33 @@ palette, resume grid, and deep links all read from that array.
 
 ## Design notes
 
-- **Palette** — cool drafting-film neutrals carrying one accent at a time, set by
-  the active lens: signal amber, teal, steel blue, violet, clay. Both themes are
-  defined at token level, including the un-stamped system-default state.
-- **Type** — Archivo (variable width, set expanded) for display, IBM Plex Sans
-  for body, IBM Plex Mono for labels and data.
-- **Motion** — an ambient node field in the hero, scroll reveals, and counter
-  animations, all disabled under `prefers-reduced-motion`. The canvas also stops
-  when the tab is hidden.
+The page is built as a set of engineering drawings rather than a product
+screen: paper-toned sheets, hairline rules, and a recurring title-block
+"plate" for structured facts (the hero profile, the architecture detail
+panel, the recommended resume) instead of a wall of equal-weight cards.
+
+- **Palette** — light "vellum" (`#EEEBE3` paper, near-black ink) and dark
+  "blueprint" (`#10161A` paper, warm-white ink), each defined independently
+  at token level rather than one inverted into the other, including the
+  un-stamped system-default state. One fixed signal color (a deep
+  blue-teal, brighter in dark mode for contrast) drives every primary
+  interaction — buttons, links, focus rings — across all five lenses. The
+  active lens contributes only a small index-colored mark (the lens tab's
+  underline); it does not recolor the page.
+- **Type** — Fraunces (italic, variable weight) for the handful of authored
+  headings — the name, section openings, case-study titles — set as the
+  one deliberately expressive choice; IBM Plex Sans for body copy, nav, and
+  controls; IBM Plex Mono reserved for genuine technical data — title-block
+  field values, dates, diagram labels, resume filenames — not decoration.
+- **Motion** — one deliberate animation: a slow dashed flow along the
+  architecture diagram's own edges, standing in for data moving through the
+  pipeline. Content swaps (changing lens) cross-fade in place. Scroll
+  reveals are applied per section, not per card. All of it is disabled
+  under `prefers-reduced-motion`.
+- **Accessibility** — text and UI-boundary tokens are checked against WCAG
+  AA (4.5:1 for text, 3:1 for non-text UI) against both paper grounds; see
+  the commit history for the values chosen and why. Re-check contrast if
+  you change `--ink-dim`, `--line-strong`, or `--signal`.
 
 ## Local preview
 
