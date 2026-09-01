@@ -5,7 +5,7 @@ The site itself is served straight from the repo root, so this build step is
 only needed when the page has to travel as one file (a hosted preview, an
 email attachment, an offline copy).
 
-    python3 tools/build_artifact.py [output.html]
+    python3 tools/build_standalone.py [output.html]
 """
 import pathlib
 import re

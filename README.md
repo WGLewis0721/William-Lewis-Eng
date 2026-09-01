@@ -47,7 +47,7 @@ assets/js/data.js       all content — every string comes from a resume edition
 assets/js/site.js       lens state, rendering, diagram, palette, print builder
 assets/resume/*.docx    the five resume editions
 assets/img/favicon.svg
-tools/build_artifact.py inlines CSS + JS into a single portable HTML file
+tools/build_standalone.py inlines CSS + JS into one portable HTML file
 ```
 
 ## Editing content
@@ -81,5 +81,10 @@ python3 -m http.server 8000
 Single-file build (for emailing or hosting the page on its own):
 
 ```sh
-python3 tools/build_artifact.py dist/william-lewis.html
+python3 tools/build_standalone.py dist/william-lewis.html
+
+# a copy that travels away from the repo leaves the .docx files behind,
+# so point it at wherever they are reachable
+python3 tools/build_standalone.py dist/william-lewis.html \
+  --resume-base https://raw.githubusercontent.com/WGLewis0721/William-Lewis-Eng/refs/heads/main/assets/resume/
 ```

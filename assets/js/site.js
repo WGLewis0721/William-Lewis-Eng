@@ -6,11 +6,17 @@
 
   const { PROFILE, SECTORS, LENSES, EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES } = SITE;
 
-  /* Where the resume files live. Served from the repo (GitHub Pages, a custom
-     domain, or file://) they sit next to the page. A hosted preview of this
-     page has no /assets, so it reaches back to the repository instead. */
-  const REPO_RAW = 'https://raw.githubusercontent.com/WGLewis0721/William-Lewis-Eng/refs/heads/claude/resume-portfolio-website-n6e4to/assets/resume/';
-  const RESUME_BASE = /claude/i.test(location.hostname) ? REPO_RAW : 'assets/resume/';
+  /* Where the resume files live. Served from the repo they sit next to the
+     page, which is the default. A copy of this page travelling on its own —
+     the single-file build, say — sets data-resume-base on <html> to point back
+     at wherever the files are actually hosted. */
+  const RESUME_BASE = document.documentElement.dataset.resumeBase || 'assets/resume/';
+  const OFF_SITE = /^https?:/i.test(RESUME_BASE);
+
+  /* `download` only applies same-origin, so off-site copies open in a new tab. */
+  const linkAttrs = (file) => OFF_SITE
+    ? 'target="_blank" rel="noopener"'
+    : `download="${esc(file)}"`;
 
   /* Accent pairs: the bright hex reads on the dark ground, the deep hex holds
      contrast on the light ground. Both are written to the root on every swap. */
@@ -151,8 +157,15 @@
     $('#hero-role').textContent = ed.title;
     $('#hero-tagline').textContent = ed.tagline;
     $('#hero-summary').textContent = ed.summary;
-    $('#hero-download').href = RESUME_BASE + ed.file;
-    $('#hero-download').setAttribute('download', ed.file);
+    const heroDl = $('#hero-download');
+    heroDl.href = RESUME_BASE + encodeURIComponent(ed.file);
+    if (OFF_SITE) {
+      heroDl.removeAttribute('download');
+      heroDl.target = '_blank';
+      heroDl.rel = 'noopener';
+    } else {
+      heroDl.setAttribute('download', ed.file);
+    }
     $('#hero-download-label').textContent = 'Download this resume';
 
     $('#focus-title').textContent = ed.title;
@@ -306,7 +319,7 @@
         </div>
         <p class="res__sum">${esc(ed.summary.split('. ')[0])}.</p>
         <div class="res__acts">
-          <a class="btn${isActive ? ' btn--primary' : ''}" href="${RESUME_BASE + encodeURIComponent(ed.file)}" download="${esc(ed.file)}">${DL_ICON}Word</a>
+          <a class="btn${isActive ? ' btn--primary' : ''}" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Word</a>
           <button class="btn" type="button" data-print="${lens.id}" data-print-sector="${sector}">${PR_ICON}Print / PDF</button>
         </div>
         <p class="res__file">${esc(ed.file)}</p>
@@ -446,7 +459,13 @@
     EDITION_LIST.forEach(({ lens, sector, ed }) => list.push({
       label: `${ed.title} — ${SECTORS[sector].short}`,
       group: 'Download',
-      run: () => { const a = document.createElement('a'); a.href = RESUME_BASE + encodeURIComponent(ed.file); a.download = ed.file; document.body.appendChild(a); a.click(); a.remove(); }
+      run: () => {
+        const url = RESUME_BASE + encodeURIComponent(ed.file);
+        if (OFF_SITE) { window.open(url, '_blank', 'noopener'); return; }
+        const a = document.createElement('a');
+        a.href = url; a.download = ed.file;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
     }));
     list.push({ label: 'Print the current edition as PDF', group: 'Action', run: () => window.print() });
     list.push({ label: 'Switch color theme', group: 'Action', run: () => $('#theme-toggle').click() });
