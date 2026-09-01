@@ -57,15 +57,25 @@ every index of that job's `bullets` array exactly once. Add a bullet to
 bullets will silently disappear from the timeline.
 
 **Both themes, always.** Colors are CSS custom properties defined at token level
-in three places: bare `:root` (light), `@media (prefers-color-scheme: dark)`
-guarded with `:root:not([data-theme="light"])`, and `:root[data-theme="dark"]`.
-Never write a literal color inside a component rule, and never define a color
-only inside a media or `[data-theme]` block — the un-stamped system-default state
-would miss it. Use the existing tokens (`--ink`, `--ink-2`, `--ink-dim`,
-`--panel`, `--rule`, `--a`, `--a-mark`, `--a-rgb`).
+in three places: bare `:root` (light "vellum"), `@media (prefers-color-scheme: dark)`
+guarded with `:root:not([data-theme="light"])`, and `:root[data-theme="dark"]`
+(dark "blueprint"). Never write a literal color inside a component rule, and
+never define a color only inside a media or `[data-theme]` block — the
+un-stamped system-default state would miss it. Use the existing tokens
+(`--ink`, `--ink-2`, `--ink-dim`, `--paper`, `--paper-raised`, `--paper-sunk`,
+`--line`, `--line-soft`, `--line-strong`, `--signal`, `--signal-rgb`,
+`--signal-on`). If you touch one of the low-contrast dim/border tokens,
+re-check its contrast against the paper ground in both themes — see the
+"Accessibility" note in the README.
 
-**Accents come from the lens.** Page accent is set at runtime from the active
-lens's `accent` / `accentInk`. Do not hard-code an accent anywhere.
+**Signal color is fixed; the lens contributes only an index mark.** `--signal`
+drives every primary interactive color across all five lenses and both
+sectors — it does not change when the lens changes. The active lens instead
+writes `--idx-bright` / `--idx-deep` (and their `-rgb` pairs) from its
+`accent` / `accentInk`, which CSS resolves into `--idx` per theme; `--idx` is
+used only for small marks (the lens tab's underline), never for buttons,
+body links, or focus rings. Do not widen its use — recoloring the whole page
+per lens is the thing this system deliberately avoids.
 
 **Escape interpolated content.** Everything rendered through template literals in
 `site.js` goes through `esc()`. Keep it that way.
