@@ -101,6 +101,7 @@ assets/js/data.js          all content — every string comes from a resume edit
 assets/js/site.js          lens state, rendering, diagram, palette
 assets/resume/             the ten tailored PDFs and the master Word resume
 assets/img/favicon.svg
+.claude/skills/            project skills, loaded in every Claude Code surface
 resume-inbox/              staging area for new resume versions — see its README
 tools/read_resumes.py      dumps the text of every .pdf/.docx in a folder
 tools/build_standalone.py  inlines CSS + JS into one portable HTML file

@@ -92,6 +92,13 @@ and deep links all read from that array, so nothing else needs editing.
 `editions[].file` at it. Filenames are
 `William-G-Lewis_<Role-In-Kebab-Case>[_Cleared].<ext>`.
 
+## Project skills
+
+`.claude/skills/` carries `frontend-design`, `brand-guidelines`, `theme-factory`
+and `algorithmic-art`, so they are available in any Claude Code session that
+opens this repo. Reach for `frontend-design` before making visual changes.
+See `.claude/skills/README.md` for what may and may not be vendored there.
+
 ## Checking your work
 
 There are no tests. Verify by hand:
