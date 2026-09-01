@@ -79,8 +79,8 @@ const LENSES = [
     id: 'devsecops',
     label: 'DevSecOps',
     title: 'Cloud & DevSecOps Architect',
-    accent: '#3FBFA2',
-    accentInk: '#0B6A55',
+    accent: '#5AA9E6',
+    accentInk: '#1F5C8C',
     blurb: 'Secure delivery pipelines, compliance automation, and change control.',
     competencies: [
       { group: 'Cloud & IaC', items: ['AWS', 'AWS GovCloud', 'EC2', 'VPC', 'Transit Gateway', 'IAM', 'Lambda', 'S3', 'ECS', 'RDS', 'Terraform', 'CloudFormation', 'Ansible'] },
@@ -123,8 +123,8 @@ const LENSES = [
     id: 'sre',
     label: 'SRE & Reliability',
     title: 'Cloud SRE & Platform Reliability Engineer',
-    accent: '#5AA9E6',
-    accentInk: '#1F5C8C',
+    accent: '#3FBFA2',
+    accentInk: '#0B6A55',
     blurb: 'Availability, observability, incident response, and toil reduction.',
     competencies: [
       { group: 'Reliability Engineering', items: ['Availability validation', 'incident triage', 'patching', 'operational readiness', 'service-level agreement support', 'toil reduction'] },
