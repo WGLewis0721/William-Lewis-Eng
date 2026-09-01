@@ -367,10 +367,16 @@ const CLASSIFIED_PROFILE = [
 const PROJECTS = [
   {
     name: 'CNAP Log Analyst Agent',
-    context: 'Production AI SIEM · AWS GovCloud IL6',
+    context: 'Production AI SIEM \u00b7 AWS GovCloud IL6',
     status: 'In production',
     lead: 'The program\u2019s first operational AI security capability: a production LLM inference platform deployed in an air-gapped DoD environment with zero commercial cloud dependency.',
-    body: 'A GPU-backed inference stack on NVIDIA T4 serves natural-language log investigation against Palo Alto and AppGate data through an OpenSearch RAG pipeline — a classified security operations interface with no prior equivalent in the program. Shipped alongside a fix for a production credential-rotation defect that was blocking deployment, plus full operational documentation for classified handoff.',
+    facets: [
+      { k: 'Context', v: 'Security telemetry from Palo Alto NGFW and AppGate SDP lands in OpenSearch inside a classified IL6 enclave, where analysts have to work with it directly.' },
+      { k: 'Constraint', v: 'Nothing inside the enclave can call out. A hosted model API was not an option, so any AI capability had to run on infrastructure standing entirely inside the boundary.' },
+      { k: 'Ownership', v: 'Pioneered and deployed the platform end to end, resolved a production credential-rotation defect that was blocking deployment, and wrote the operational documentation for classified handoff.' },
+      { k: 'System', v: 'A GPU-backed inference stack on NVIDIA T4 serves natural-language investigation through an OpenSearch retrieval-augmented generation pipeline over live Palo Alto and AppGate data.' },
+      { k: 'Outcome', v: 'A classified security-operations interface with no prior equivalent in the program \u2014 analysts query live log data in plain language, and neither the prompts nor the telemetry leave the enclave.' }
+    ],
     stack: ['NVIDIA T4 GPU EC2', 'Ollama', 'OpenSearch RAG', 'Open WebUI', 'Palo Alto + AppGate telemetry']
   },
   {
@@ -378,7 +384,13 @@ const PROJECTS = [
     context: 'Architecture & executive proof of concept',
     status: 'Approved for AI VPC expansion',
     lead: 'Architecture and proof of concept for an AI-powered security intelligence chatbot scoped for classified program use.',
-    body: 'Defined the LLM integration layer, the OpenSearch query-generation pipeline, and the GovCloud deployment model, then presented to C1 Cohort leadership — securing stakeholder alignment and go/no-go approval for AI VPC expansion.',
+    facets: [
+      { k: 'Context', v: 'The program needed a decision on whether AI-assisted security investigation belonged on the classified platform at all.' },
+      { k: 'Constraint', v: 'The design had to deploy within AWS GovCloud and survive a leadership go/no-go review before any build work started.' },
+      { k: 'Ownership', v: 'Defined the LLM integration layer, the OpenSearch query-generation pipeline, and the GovCloud deployment model, then presented the design to C1 Cohort leadership.' },
+      { k: 'System', v: 'An LLM integration layer over an OpenSearch query-generation pipeline, deployed on AWS GovCloud.' },
+      { k: 'Outcome', v: 'Stakeholder alignment and go/no-go approval for AI VPC expansion.' }
+    ],
     stack: ['LLM integration layer', 'OpenSearch query generation', 'AWS GovCloud']
   },
   {
@@ -386,10 +398,30 @@ const PROJECTS = [
     context: 'Serverless LLM pipeline',
     status: '50% latency reduction',
     lead: 'A serverless transcript-analysis platform generating structured AI summaries over a REST API.',
-    body: 'Built on AWS Bedrock, Lambda, DynamoDB, and API Gateway, with a 50% latency reduction achieved through architecture optimization.',
+    facets: [
+      { k: 'Context', v: 'Transcripts needed structured summaries and sentiment on demand rather than as an offline batch job.' },
+      { k: 'System', v: 'AWS Bedrock handles inference behind Lambda, with DynamoDB for state and API Gateway exposing the analysis as a REST API.' },
+      { k: 'Outcome', v: 'Architecture optimization cut end-to-end latency by 50%.' }
+    ],
     stack: ['AWS Bedrock', 'Lambda', 'DynamoDB', 'API Gateway', 'Python']
   }
 ];
+
+/* ---------------------------------------------------------------------------
+   The IL6 platform as a written case study. The diagram is the evidence; this
+   is the argument around it. Every claim traces to the CNAP bullets above.
+--------------------------------------------------------------------------- */
+const ARCH_STORY = {
+  before: [
+    { k: 'Problem', v: 'The CNAP platform runs inside a classified enclave at Gunter AFB. Infrastructure there still has to change \u2014 but the environment being changed cannot reach the network the code is written and reviewed on.' },
+    { k: 'Constraint', v: 'One auditable crossing, physically one-way. Nothing inside can call back out, so no pipeline may pull a module, an image, or a dependency at apply time, and no off-the-shelf delivery product covered the gap.' }
+  ],
+  after: [
+    { k: 'Architecture', v: 'Validation, planning and packaging stay on the connected low side. Each promotion leaves as a complete, self-sufficient, immutable versioned object; the enclave applies what crossed and nothing else, which is also what makes the hop auditable after the fact.' },
+    { k: 'Implementation', v: 'Per-component Terraform with CIDR enforcement and environment-variable injection; a high-side GitLab CI/CD pipeline with versioned S3 cross-domain staging; AppGate SDP and Palo Alto NGFW holding the perimeter; Fluent Bit shipping telemetry into OpenSearch; ACAS, SCAP and STIG evidence feeding IATT and ATO.' },
+    { k: 'Result', v: 'An estimated 60\u201370% reduction in deployment error and manual provisioning effort, the team\u2019s first end-to-end log visibility, and \u2014 because answers could not leave either \u2014 a GPU-hosted local model doing retrieval against that same index with no egress.' }
+  ]
+};
 
 /* Architecture walkthrough: the IL6 platform, node by node. */
 const ARCH_NODES = {
@@ -479,4 +511,5 @@ const MASTER = {
 };
 
 const SITE = { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS,
-               PUBLICATIONS, AFFILIATIONS, EXPERIENCE, METRICS, CREDENTIALS, ARCH_NODES };
+               PUBLICATIONS, AFFILIATIONS, EXPERIENCE, METRICS, CREDENTIALS,
+               ARCH_NODES, ARCH_STORY };
