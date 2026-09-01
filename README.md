@@ -97,6 +97,8 @@ assets/js/data.js          all content — every string comes from a resume edit
 assets/js/site.js          lens state, rendering, diagram, palette, print builder
 assets/resume/*.docx       the complete resume plus five tailored editions
 assets/img/favicon.svg
+resume-inbox/              staging area for new resume versions — see its README
+tools/read_resumes.py      dumps the text of every .docx in a folder
 tools/build_standalone.py  inlines CSS + JS into one portable HTML file
 .nojekyll                  serve assets/ verbatim on GitHub Pages
 ```
@@ -120,6 +122,12 @@ The exports at the bottom of `data.js` map to the sections above:
 | `METRICS` | The counters under the hero |
 | `CREDENTIALS`, `CLASSIFIED_PROFILE`, `AFFILIATIONS` | Credentials |
 | `ARCH_NODES` | The text for each diagram component |
+
+**When a resume is revised:** drop the new `.docx` into `resume-inbox/` — that
+folder's README covers the rest, including which name it gets promoted to and
+what has to be re-transcribed into `data.js`. Note that the site never reads the
+`.docx` files at runtime; they are download artifacts, so replacing one without
+updating `data.js` leaves the page showing the old wording.
 
 **To add a resume edition:** drop the `.docx` into `assets/resume/`, then add an
 entry under the relevant lens's `editions` in `data.js` with its `file` name.
