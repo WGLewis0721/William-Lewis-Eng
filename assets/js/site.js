@@ -4,7 +4,8 @@
 (function () {
   'use strict';
 
-  const { PROFILE, SECTORS, LENSES, EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES } = SITE;
+  const { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS, AFFILIATIONS,
+          EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES } = SITE;
 
   /* Where the resume files live. Served from the repo they sit next to the
      page, which is the default. A copy of this page travelling on its own —
@@ -288,6 +289,21 @@
   }
   capSearch.addEventListener('input', filterCaps);
 
+  /* ------------------------------------------------------------- projects */
+  $('#proj-grid').innerHTML = PROJECTS.map((pr) => `
+    <article class="proj panel">
+      <div class="proj__id">
+        <h3>${esc(pr.name)}</h3>
+        <p class="proj__ctx">${esc(pr.context)}</p>
+        <span class="proj__status">${esc(pr.status)}</span>
+      </div>
+      <div class="proj__body">
+        <p class="proj__lead">${esc(pr.lead)}</p>
+        <p class="proj__detail">${esc(pr.body)}</p>
+        <div class="proj__stack">${pr.stack.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+      </div>
+    </article>`).join('');
+
   /* ----------------------------------------------------------- credentials */
   const KIND = { cert: 'Certification', clearance: 'Clearance', education: 'Education' };
   $('#cred-grid').innerHTML = CREDENTIALS.map((c) => `
@@ -296,6 +312,10 @@
       <h3>${esc(c.name)}</h3>
       <p>${esc(c.meta)}</p>
     </article>`).join('');
+
+  $('#profile-list').innerHTML = CLASSIFIED_PROFILE.map((r) =>
+    `<div><dt>${esc(r.k)}</dt><dd>${esc(r.v)}</dd></div>`).join('');
+  $('#affiliations').textContent = AFFILIATIONS.join(' · ');
 
   /* --------------------------------------------------------- resume cards */
   const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 18.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5"/></svg>';
@@ -326,6 +346,23 @@
       </article>`;
     }).join('');
   }
+
+  $('#res-master').innerHTML = `
+    <article class="master panel">
+      <div>
+        <span class="master__badge">${esc(MASTER.badge)}</span>
+        <h3>${esc(MASTER.title)}</h3>
+        <p class="master__tag">${esc(MASTER.tagline)}</p>
+        <div class="master__acts">
+          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(MASTER.file)}" ${linkAttrs(MASTER.file)}>${DL_ICON}Download complete resume</a>
+        </div>
+        <p class="master__file">${esc(MASTER.file)}</p>
+      </div>
+      <div style="display:grid;gap:.9rem">
+        <p class="master__sum">${esc(MASTER.summary)}</p>
+        <p class="master__note">${esc(MASTER.note)}</p>
+      </div>
+    </article>`;
 
   $('#res-grid').addEventListener('click', (e) => {
     const b = e.target.closest('[data-print]');
@@ -429,7 +466,7 @@
         navLinks.forEach((a) => a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + en.target.id)));
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
-    ['focus', 'architecture', 'experience', 'capabilities', 'credentials', 'resume'].forEach((id) => {
+    ['focus', 'architecture', 'projects', 'experience', 'capabilities', 'credentials', 'resume'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) spy.observe(el);
     });
@@ -452,20 +489,23 @@
       { label: 'Experience', group: 'Go to', run: () => location.hash = '#experience' },
       { label: 'Capabilities', group: 'Go to', run: () => location.hash = '#capabilities' },
       { label: 'Credentials', group: 'Go to', run: () => location.hash = '#credentials' },
+      { label: 'Signature projects', group: 'Go to', run: () => location.hash = '#projects' },
       { label: 'Resume downloads', group: 'Go to', run: () => location.hash = '#resume' },
       { label: 'Contact', group: 'Go to', run: () => location.hash = '#contact' }
     ];
     LENSES.forEach((l) => list.push({ label: `Read as ${l.label}`, group: 'Lens', run: () => setLens(l.id) }));
+    const grab = (file) => () => {
+      const url = RESUME_BASE + encodeURIComponent(file);
+      if (OFF_SITE) { window.open(url, '_blank', 'noopener'); return; }
+      const a = document.createElement('a');
+      a.href = url; a.download = file;
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+    list.push({ label: 'Complete resume — every project, nothing trimmed', group: 'Download', run: grab(MASTER.file) });
     EDITION_LIST.forEach(({ lens, sector, ed }) => list.push({
       label: `${ed.title} — ${SECTORS[sector].short}`,
       group: 'Download',
-      run: () => {
-        const url = RESUME_BASE + encodeURIComponent(ed.file);
-        if (OFF_SITE) { window.open(url, '_blank', 'noopener'); return; }
-        const a = document.createElement('a');
-        a.href = url; a.download = ed.file;
-        document.body.appendChild(a); a.click(); a.remove();
-      }
+      run: grab(ed.file)
     }));
     list.push({ label: 'Print the current edition as PDF', group: 'Action', run: () => window.print() });
     list.push({ label: 'Switch color theme', group: 'Action', run: () => $('#theme-toggle').click() });

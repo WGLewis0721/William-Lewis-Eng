@@ -8,7 +8,8 @@ from branch, root folder). No build step is required — the site is static.
 
 ## What it does
 
-**Role lens.** I keep five tailored resume editions across four role tracks. The
+**Role lens.** Alongside the complete resume I keep five tailored editions
+across four role tracks. The
 lens control drives the whole page: the hero, the professional summary, core
 competencies, selected impact, which capabilities are highlighted, and which
 resume the download button hands over.
@@ -21,7 +22,8 @@ resume the download button hands over.
 | Zero Trust Security | ✅ | — |
 
 Switching context also rewrites the experience section, because the government
-and private-sector editions phrase the same roles differently.
+and private-sector editions phrase the same roles differently. The complete
+resume sits above the grid and is always available, whichever lens is selected.
 
 **Deep links.** `?lens=zerotrust&for=gov` opens the page already framed for that
 audience — useful when replying to a specific req.
@@ -30,6 +32,9 @@ audience — useful when replying to a specific req.
 infrastructure as code crosses a one-way data diode into an air-gapped enclave,
 and why the retrieval index and the model that queries it have to live inside it.
 Every component is focusable from the keyboard.
+
+**Signature work.** The three AI infrastructure projects — including the
+air-gapped IL6 log analyst agent — get their own section.
 
 **Resume delivery.** Each edition offers the Word original and a `Print / PDF`
 button. Printing renders a purpose-built, ATS-friendly one-page resume for the
@@ -45,7 +50,7 @@ index.html              markup + the hand-authored architecture SVG
 assets/css/site.css     design tokens, layout, print stylesheet
 assets/js/data.js       all content — every string comes from a resume edition
 assets/js/site.js       lens state, rendering, diagram, palette, print builder
-assets/resume/*.docx    the five resume editions
+assets/resume/*.docx    the complete resume plus five tailored editions
 assets/img/favicon.svg
 tools/build_standalone.py inlines CSS + JS into one portable HTML file
 ```

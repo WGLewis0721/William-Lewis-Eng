@@ -232,6 +232,8 @@ const SKILL_DOMAINS = [
       { n: 'API Gateway', l: ['ai'] },
       { n: 'DynamoDB', l: ['ai'] },
       { n: 'RDS', l: ['platform'] },
+      { n: 'VPC / Transit Gateway', l: ['platform', 'zerotrust'] },
+      { n: 'ECS / ECR', l: ['platform', 'devsecops'] },
       { n: 'S3 (versioned staging)', l: ['platform', 'devsecops'] },
       { n: 'IAM', l: ['devsecops', 'zerotrust'] },
       { n: 'KMS', l: ['devsecops'] }
@@ -244,6 +246,8 @@ const SKILL_DOMAINS = [
       { n: 'CloudFormation', l: ['platform', 'devsecops'] },
       { n: 'Ansible', l: ['platform', 'devsecops'] },
       { n: 'Python / Boto3', l: ['platform', 'ai'] },
+      { n: 'YAML / JSON', l: ['platform', 'devsecops'] },
+      { n: 'RESTful APIs', l: ['ai'] },
       { n: 'Bash', l: ['platform'] },
       { n: 'PowerShell', l: ['platform'] }
     ]
@@ -256,6 +260,9 @@ const SKILL_DOMAINS = [
       { n: 'Git', l: ['platform', 'devsecops'] },
       { n: 'Docker', l: ['platform', 'devsecops', 'ai'] },
       { n: 'Kubernetes / EKS', l: ['platform', 'devsecops', 'ai'] },
+      { n: 'GitOps', l: ['devsecops'] },
+      { n: 'Cross-domain code promotion', l: ['devsecops', 'zerotrust'] },
+      { n: 'Agile Scrum leadership', l: ['platform'] },
       { n: 'Change control & branching standards', l: ['devsecops'] }
     ]
   },
@@ -267,6 +274,8 @@ const SKILL_DOMAINS = [
       { n: 'CloudWatch', l: ['platform', 'devsecops', 'ai'] },
       { n: 'CloudWatch Canaries', l: ['platform'] },
       { n: 'SIEM dashboards', l: ['zerotrust'] },
+      { n: 'OpenSearch Dashboards', l: ['platform', 'zerotrust'] },
+      { n: 'Dynatrace', l: ['platform'] },
       { n: 'Teams alerting', l: ['platform'] }
     ]
   },
@@ -280,7 +289,10 @@ const SKILL_DOMAINS = [
       { n: 'GuardDuty', l: ['devsecops'] },
       { n: 'TLS modernization', l: ['devsecops'] },
       { n: 'Vulnerability remediation', l: ['devsecops', 'zerotrust'] },
-      { n: 'Security automation', l: ['devsecops'] }
+      { n: 'Security automation', l: ['devsecops'] },
+      { n: 'Microsegmentation', l: ['zerotrust'] },
+      { n: 'WAF', l: ['devsecops'] },
+      { n: 'F5', l: [] }
     ]
   },
   {
@@ -294,7 +306,10 @@ const SKILL_DOMAINS = [
       { n: 'CIS Benchmarks', l: ['zerotrust'] },
       { n: 'ACAS', l: ['zerotrust'] },
       { n: 'SCAP', l: ['zerotrust'] },
-      { n: 'DoD 8140 / 8570 IAT II', l: ['zerotrust'] }
+      { n: 'DoD 8140 / 8570 IAT II', l: ['zerotrust'] },
+      { n: 'ConMon / cATO readiness', l: ['zerotrust'] },
+      { n: 'POA&M', l: ['zerotrust'] },
+      { n: 'IRP · VMP · CMP · SAR', l: ['zerotrust'] }
     ]
   },
   {
@@ -306,7 +321,9 @@ const SKILL_DOMAINS = [
       { n: 'Local / private model serving', l: ['ai', 'zerotrust'] },
       { n: 'FastAPI', l: ['ai'] },
       { n: 'GPU compute provisioning', l: ['ai'] },
-      { n: 'Inference telemetry', l: ['ai'] }
+      { n: 'Inference telemetry', l: ['ai'] },
+      { n: 'Open WebUI', l: ['ai'] },
+      { n: 'NVIDIA T4 inference', l: ['ai'] }
     ]
   },
   {
@@ -327,9 +344,71 @@ const CREDENTIALS = [
   { name: 'AWS Certified Solutions Architect – Associate', meta: 'Amazon Web Services · 2022', kind: 'cert' },
   { name: 'AWS Certified SysOps Administrator – Associate', meta: 'Amazon Web Services · 2023', kind: 'cert' },
   { name: 'CompTIA Security+ CE', meta: 'Active', kind: 'cert' },
+  { name: 'AWS Certified AI Practitioner', meta: 'In progress', kind: 'cert' },
   { name: 'Active Top Secret (TS) Clearance', meta: 'SCI Eligible · IT-1', kind: 'clearance' },
   { name: 'DoD 8140 / 8570 IAT Level II', meta: 'Compliant', kind: 'clearance' },
   { name: 'B.S. Computer Science', meta: 'Alabama State University · Cum Laude · December 2018', kind: 'education' }
+];
+
+/* ---------------------------------------------------------------------------
+   The master resume: the complete, full-detail document the tailored editions
+   above are cut from. Always available, whichever lens is selected.
+--------------------------------------------------------------------------- */
+const MASTER = {
+  badge: 'Master edition · full detail',
+  title: 'Lead Cloud & Platform Engineer',
+  tagline: 'Cloud Security & Zero Trust · AI Infrastructure · DevSecOps',
+  summary: 'Senior cloud and platform engineer with 7+ years of ownership in classified AWS GovCloud environments (IL2–IL6) and an active Top Secret clearance. Directed the full engineering lifecycle of a DoD CNAP program: Zero Trust architecture deployment, diode-constrained CI/CD, SIEM observability, and ATO compliance execution under NIST 800-53 and DoD RMF. Pioneered the program\u2019s first operational AI capability — a local LLM inference platform for security investigation in an air-gapped classified environment.',
+  note: 'Every project, every bullet, nothing trimmed for length. Start here if you want the complete picture.',
+  file: 'William-G-Lewis_Complete-Resume.docx'
+};
+
+/* The classified-environment spec sheet from the master resume. */
+const CLASSIFIED_PROFILE = [
+  { k: 'Clearance', v: 'Active Top Secret (TS), SCI Eligible, IT-1' },
+  { k: 'Classification levels', v: 'AWS GovCloud IL2, IL4, IL5, IL6 (DoD classified)' },
+  { k: 'Delivery model', v: 'Diode-restricted cross-domain pipelines, air-gapped Infrastructure as Code, no direct internet path' },
+  { k: 'Compliance', v: 'NIST 800-53, DoD RMF, ATO, IATT, ConMon, ACAS, STIG, CIS Benchmarks, eMASS' },
+  { k: 'Zero Trust', v: 'AppGate SDP — Controller, Portal, Gateway: deployment, hardening, entitlement governance' },
+  { k: 'Network security', v: 'Palo Alto NGFW (PAN-OS): lifecycle management, version governance, firewall policy ownership' },
+  { k: 'Observability', v: 'Fluent Bit, OpenSearch, Lambda, CloudWatch — end-to-end SIEM pipeline ownership' },
+  { k: 'AI systems', v: 'Local LLM inference on GPU EC2, OpenSearch RAG, zero commercial cloud dependency' }
+];
+
+/* ---------------------------------------------------------------------------
+   Signature AI infrastructure projects, from the master resume.
+--------------------------------------------------------------------------- */
+const PROJECTS = [
+  {
+    name: 'CNAP Log Analyst Agent',
+    context: 'Production AI SIEM · AWS GovCloud IL6',
+    status: 'In production',
+    lead: 'The program\u2019s first operational AI security capability: a production LLM inference platform deployed in an air-gapped DoD environment with zero commercial cloud dependency.',
+    body: 'A GPU-backed inference stack on NVIDIA T4 serves natural-language log investigation against Palo Alto and AppGate data through an OpenSearch RAG pipeline — a classified security operations interface with no prior equivalent in the program. Shipped alongside a fix for a production credential-rotation defect that was blocking deployment, plus full operational documentation for classified handoff.',
+    stack: ['NVIDIA T4 GPU EC2', 'Ollama', 'OpenSearch RAG', 'Open WebUI', 'Palo Alto + AppGate telemetry']
+  },
+  {
+    name: 'CNAP AI SIEM Chatbot',
+    context: 'Architecture & executive proof of concept',
+    status: 'Approved for AI VPC expansion',
+    lead: 'Architecture and proof of concept for an AI-powered security intelligence chatbot scoped for classified program use.',
+    body: 'Defined the LLM integration layer, the OpenSearch query-generation pipeline, and the GovCloud deployment model, then presented to C1 Cohort leadership — securing stakeholder alignment and go/no-go approval for AI VPC expansion.',
+    stack: ['LLM integration layer', 'OpenSearch query generation', 'AWS GovCloud']
+  },
+  {
+    name: 'AI Cloud Sentiment Analysis & Summarizer',
+    context: 'Serverless LLM pipeline',
+    status: '50% latency reduction',
+    lead: 'A serverless transcript-analysis platform generating structured AI summaries over a REST API.',
+    body: 'Built on AWS Bedrock, Lambda, DynamoDB, and API Gateway, with a 50% latency reduction achieved through architecture optimization.',
+    stack: ['AWS Bedrock', 'Lambda', 'DynamoDB', 'API Gateway', 'Python']
+  }
+];
+
+const AFFILIATIONS = [
+  'Alpha Phi Alpha Fraternity, Inc. (2016–present)',
+  'National Society of Black Engineers (2018–present)',
+  'Scouting America (2023–present)'
 ];
 
 /* Architecture walkthrough: the IL6 platform, node by node. */
@@ -386,4 +465,5 @@ const ARCH_NODES = {
   }
 };
 
-const SITE = { PROFILE, SECTORS, LENSES, EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES };
+const SITE = { PROFILE, SECTORS, LENSES, MASTER, CLASSIFIED_PROFILE, PROJECTS, AFFILIATIONS,
+               EXPERIENCE, METRICS, SKILL_DOMAINS, CREDENTIALS, ARCH_NODES };
