@@ -14,6 +14,7 @@
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hoverCapable = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   const hexToRgb = (hex) => {
     const n = parseInt(hex.slice(1), 16);
@@ -22,6 +23,7 @@
 
   /* ---------------------------------------------------------------- state */
   const lensById = Object.fromEntries(LENSES.map((l) => [l.id, l]));
+  const lensIndex = Object.fromEntries(LENSES.map((l, i) => [l.id, i]));
   const state = { lens: 'platform', sector: 'private' };
   const editionsOf = (id) => Object.keys(lensById[id].editions);
   const activeLens = () => lensById[state.lens];
@@ -33,12 +35,7 @@
   const MOON = '<path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.5 8.5 0 1 0 20 14.2Z"/>';
   const SUN = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/>';
 
-  /* Dark is the unconditional default identity — it does not defer to the
-     system color-scheme preference. Only an explicit toggle (persisted)
-     switches to light. */
-  function currentlyDark() {
-    return root.getAttribute('data-theme') !== 'light';
-  }
+  function currentlyDark() { return root.getAttribute('data-theme') !== 'light'; }
   function paintThemeIcon() { themeIcon.innerHTML = currentlyDark() ? SUN : MOON; }
 
   try {
@@ -46,6 +43,10 @@
     if (saved === 'light') root.setAttribute('data-theme', 'light');
   } catch (e) {}
   paintThemeIcon();
+
+  $('#logo-mark').addEventListener('click', () => {
+    document.getElementById('top').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' });
+  });
 
   $('#theme-toggle').addEventListener('click', () => {
     const next = currentlyDark() ? 'light' : 'dark';
@@ -90,6 +91,7 @@
       paint();
     }
     paintControls();
+    flashTopologyLabel();
   }
 
   function paintControls() {
@@ -117,12 +119,15 @@
     const ed = activeEdition();
 
     $('#hero-role').textContent = L.title;
-    $('#hero-tags').innerHTML = ed.tagline.split(' · ').map((s) => `<span>${esc(s)}</span>`).join('');
+    $('#hero-pitch').textContent = ed.tagline.split(' · ')[0] + ' — ' + L.blurb;
 
     const heroDl = $('#hero-download');
     heroDl.href = RESUME_BASE + encodeURIComponent(ed.file);
     if (OFF_SITE) { heroDl.removeAttribute('download'); heroDl.target = '_blank'; heroDl.rel = 'noopener'; }
     else heroDl.setAttribute('download', ed.file);
+
+    const proofBits = ['7+ Years', 'AWS · GovCloud', 'IL2–IL6'];
+    $('#hero-proof').innerHTML = proofBits.map((b) => `<span><b>${esc(b)}</b></span>`).join('');
 
     $('#proof-title').textContent = L.title;
     $('#proof-summary').textContent = ed.summary.split(/(?<=\.)\s+/)[0];
@@ -133,82 +138,145 @@
       return `<div class="proof__stat"><div class="v">${esc(shown)}</div><div class="l">${esc(m.label)}</div></div>`;
     }).join('');
 
-    paintHUD(L, ed);
-    paintTimeline();
-    paintCapabilities();
+    paintCareerDetail();
+    paintCapMap();
+    paintWorkStage(activeWorkIndex);
     paintResume();
   }
 
-  function paintHUD(L, ed) {
-    const bits = [
-      { l: '7+ Years', k: 'EXP' },
-      { l: 'AWS · GovCloud', k: 'CLOUD' },
-      { l: 'IL2–IL6', k: 'ENV' },
-      { l: 'Zero Trust', k: 'SEC' },
-      { l: 'AI Infrastructure', k: 'AI' }
-    ];
-    $('#hero-hud').innerHTML = bits.map((b) => `<span class="hud-chip"><i></i><b>${esc(b.l)}</b></span>`).join('');
-  }
-
-  /* -------------------------------------------------------------- timeline */
-  function paintTimeline() {
-    const L = activeLens();
-    $('#timeline').innerHTML = EXPERIENCE.map((job) => {
-      const order = L.bulletOrder[job.id] || job.bullets.map((_, i) => i);
-      const wins = order.slice(0, 2).map((i) => job.bullets[i]).filter(Boolean);
-      return `
-      <article class="tl__row${job.current ? ' is-current' : ''}">
-        <div class="tl__when">
-          <span class="period mono">${esc(job.period)}</span>
-          ${job.current ? '<span class="now">Current</span>' : ''}
-        </div>
-        <div class="tl__spine"><i></i></div>
-        <div class="tl__what">
-          <h3>${esc(job.role)}</h3>
-          <p class="tl__org">${esc(job.org)} · ${esc(job.context)}</p>
-          <ul class="tl__wins">${wins.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
-        </div>
-      </article>`;
-    }).join('');
-  }
-
-  /* ---------------------------------------------------------- capabilities */
-  function paintCapabilities() {
-    $('#caps-list').innerHTML = activeLens().competencies.map((g, i) => `
-      <details class="cap"${i === 0 ? ' open' : ''}>
-        <summary>${esc(g.group)}<span class="n mono">${g.items.length}</span></summary>
-        <div class="cap__list">${g.items.map((s) => `<span>${esc(s)}</span>`).join('')}</div>
-      </details>`).join('');
-  }
-
-  /* ------------------------------------------------------------- projects */
+  /* ---------------------------------------------------------------- work */
   const GLYPHS = [
-    // 0 — GPU + RAG + plain-language answers
     `<svg viewBox="0 0 200 130" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="8" y="50" width="52" height="34" rx="5" stroke-dasharray="3 3" opacity=".5"/><rect x="16" y="56" width="36" height="22" rx="3"/><text x="34" y="70" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="currentColor" stroke="none">GPU</text><line x1="68" y1="67" x2="98" y2="67" marker-end="url(#gA)"/><rect x="100" y="52" width="44" height="30" rx="3"/><text x="122" y="70" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="currentColor" stroke="none">INDEX</text><line x1="144" y1="67" x2="170" y2="67" marker-end="url(#gA)"/><rect x="170" y="46" width="26" height="42" rx="13"/><text x="183" y="70" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="currentColor" stroke="none">?</text><defs><marker id="gA" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="currentColor" stroke="none"/></marker></defs></svg>`,
-    // 1 — layered POC: LLM / QUERY GEN / GOVCLOUD
     `<svg viewBox="0 0 200 130" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="20" y="18" width="160" height="26" rx="4"/><text x="100" y="35" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="currentColor" stroke="none">LLM INTEGRATION LAYER</text><line x1="100" y1="44" x2="100" y2="56"/><rect x="20" y="58" width="160" height="26" rx="4"/><text x="100" y="75" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="currentColor" stroke="none">OPENSEARCH QUERY GEN</text><line x1="100" y1="84" x2="100" y2="96"/><rect x="20" y="98" width="160" height="26" rx="4" stroke-dasharray="3 3"/><text x="100" y="115" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="currentColor" stroke="none">AWS GOVCLOUD</text></svg>`,
-    // 2 — serverless chain: API -> Lambda -> DynamoDB
     `<svg viewBox="0 0 200 130" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="30" cy="65" r="20"/><text x="30" y="69" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="currentColor" stroke="none">API</text><line x1="50" y1="65" x2="76" y2="65" marker-end="url(#gB)"/><rect x="78" y="45" width="46" height="40" rx="6"/><text x="101" y="69" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="currentColor" stroke="none">LAMBDA</text><line x1="124" y1="65" x2="150" y2="65" marker-end="url(#gB)"/><rect x="152" y="48" width="40" height="34" rx="4"/><text x="172" y="69" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="6.5" fill="currentColor" stroke="none">DYNAMO</text><defs><marker id="gB" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8Z" fill="currentColor" stroke="none"/></marker></defs></svg>`
   ];
-  const WORK_TINT = ['signal', 'signal-2', 'signal'];
+  const WORK_TINT = ['signal', 'amber', 'signal'];
+  let activeWorkIndex = 0;
 
-  $('#work-list').innerHTML = PROJECTS.map((pr, i) => `
-    <article class="work">
-      <div class="work__glyph" style="--work-c-solid:var(--${WORK_TINT[i % WORK_TINT.length]});--work-c:var(--${WORK_TINT[i % WORK_TINT.length]}-rgb)">${GLYPHS[i % GLYPHS.length]}</div>
-      <div class="work__body">
-        <span class="work__status mono">${esc(pr.status)}</span>
-        <h3>${esc(pr.name)}</h3>
-        <div class="work__row">
-          <div><span class="k">Context</span><span class="v">${esc(pr.context)}</span></div>
-        </div>
+  const workIndex = $('#work-index');
+  workIndex.innerHTML = PROJECTS.map((pr, i) => `
+    <div class="work-item${i === 0 ? ' is-active' : ''}" data-i="${i}">
+      <button type="button" class="work-item__title" data-cursor="project" data-glyph="${i % GLYPHS.length}">
+        <span class="work-item__n mono">0${i + 1}</span>
+        <span class="work-item__name">${esc(pr.name)}</span>
+      </button>
+      <div class="work-item__mobile">
+        <div class="work-glyph" style="--work-c-solid:var(--${WORK_TINT[i % WORK_TINT.length]});--work-c:var(--${WORK_TINT[i % WORK_TINT.length]}-rgb)">${GLYPHS[i % GLYPHS.length]}</div>
+        <span class="work-stage__status mono">${esc(pr.status)}</span>
         <p style="color:var(--text);font-size:1rem">${esc(pr.lead)}</p>
-        <p class="work__stack">${pr.stack.map(esc).join(' · ')}</p>
-        <details class="work__more">
-          <summary>Explore project</summary>
-          <p>${esc(pr.body)}</p>
-        </details>
+        <p class="work-stage__stack">${pr.stack.map(esc).join(' · ')}</p>
+        <details class="work-stage__more"><summary>Explore project</summary><p>${esc(pr.body)}</p></details>
       </div>
-    </article>`).join('');
+    </div>`).join('');
+
+  function setActiveWork(i) {
+    activeWorkIndex = i;
+    workIndex.classList.add('has-active');
+    $$('.work-item', workIndex).forEach((el) => el.classList.toggle('is-active', Number(el.dataset.i) === i));
+    paintWorkStage(i);
+  }
+  function paintWorkStage(i) {
+    const pr = PROJECTS[i];
+    if (!pr) return;
+    $('#work-stage').innerHTML = `
+      <div class="work-glyph" style="--work-c-solid:var(--${WORK_TINT[i % WORK_TINT.length]});--work-c:var(--${WORK_TINT[i % WORK_TINT.length]}-rgb)">${GLYPHS[i % GLYPHS.length]}</div>
+      <span class="work-stage__status mono">${esc(pr.status)}</span>
+      <div class="work-stage__row">
+        <div><span class="k">Context</span><span class="v">${esc(pr.context)}</span></div>
+      </div>
+      <p style="color:var(--text);font-size:1.05rem">${esc(pr.lead)}</p>
+      <p class="work-stage__stack">${pr.stack.map(esc).join(' · ')}</p>
+      <details class="work-stage__more"><summary>Explore project →</summary><p>${esc(pr.body)}</p></details>`;
+  }
+  $$('.work-item__title', workIndex).forEach((btn) => {
+    const i = Number(btn.closest('.work-item').dataset.i);
+    btn.addEventListener('focus', () => setActiveWork(i));
+    btn.addEventListener('click', () => setActiveWork(i));
+    if (hoverCapable()) btn.addEventListener('mouseenter', () => setActiveWork(i));
+  });
+
+  /* ------------------------------------------------------------- career */
+  const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+  function parsePoint(str) {
+    if (/present/i.test(str)) { const d = new Date(); return d.getFullYear() + d.getMonth() / 12; }
+    const m = str.trim().match(/^(\w+)\s+(\d{4})$/);
+    if (!m) return null;
+    return Number(m[2]) + (MONTHS[m[1]] || 0) / 12;
+  }
+  const jobPoints = EXPERIENCE.map((job) => {
+    const [startStr, endStr] = job.period.split('—').map((s) => s.trim());
+    return { job, start: parsePoint(startStr), end: parsePoint(endStr) };
+  });
+  const minPoint = Math.min(...jobPoints.map((p) => p.start));
+  const maxPoint = Math.max(...jobPoints.map((p) => p.end));
+  const pct = (v) => Math.max(0, Math.min(100, ((v - minPoint) / (maxPoint - minPoint)) * 100));
+
+  $('#career-y0').textContent = String(Math.floor(minPoint));
+  $('#career-y1').textContent = String(Math.ceil(maxPoint));
+  $('#career-fill').style.width = '100%';
+
+  let activeJobId = (EXPERIENCE.find((j) => j.current) || EXPERIENCE[0]).id;
+  $('#career-stops').innerHTML = jobPoints.map(({ job, start }) => `
+    <button type="button" class="career-stop${job.id === activeJobId ? ' is-active' : ''}" data-job="${job.id}" style="left:${pct(start)}%" aria-label="${esc(job.role)} at ${esc(job.org)}" title="${esc(job.role)} — ${esc(job.org)}"></button>`).join('');
+
+  function setActiveJob(id) {
+    activeJobId = id;
+    $$('.career-stop').forEach((el) => el.classList.toggle('is-active', el.dataset.job === id));
+    paintCareerDetail();
+  }
+  $('#career-stops').addEventListener('click', (e) => { const b = e.target.closest('[data-job]'); if (b) setActiveJob(b.dataset.job); });
+
+  function paintCareerDetail() {
+    const job = EXPERIENCE.find((j) => j.id === activeJobId);
+    if (!job) return;
+    const L = activeLens();
+    const order = L.bulletOrder[job.id] || job.bullets.map((_, i) => i);
+    const wins = order.map((i) => job.bullets[i]).filter(Boolean);
+    const startYear = Math.floor(parsePoint(job.period.split('—')[0].trim()));
+    $('#career-detail').innerHTML = `
+      <div class="career-detail__year mono">${startYear}</div>
+      <div class="career-detail__body">
+        <h3 class="career-detail__role">${esc(job.role)}</h3>
+        <p class="career-detail__org">${esc(job.org)} · ${esc(job.period)}${job.current ? ' · <span style="color:var(--signal)">CURRENT</span>' : ''}</p>
+        <p class="career-detail__scope">${esc(job.context)}</p>
+        ${wins[0] ? `<p class="career-detail__win">${esc(wins[0])}</p>` : ''}
+        ${wins.length > 1 ? `<details class="career-detail__more"><summary>+ ${wins.length - 1} more from this role</summary><ul>${wins.slice(1).map((w) => `<li>${esc(w)}</li>`).join('')}</ul></details>` : ''}
+      </div>`;
+  }
+
+  /* -------------------------------------------------------- capabilities */
+  let activeCapIndex = 0;
+  function paintCapMap() {
+    const groups = activeLens().competencies;
+    if (activeCapIndex >= groups.length) activeCapIndex = 0;
+    $('#cap-map').innerHTML = `
+      <div class="cap-index has-active" id="cap-index">
+        ${groups.map((g, i) => `
+        <div class="cap-idx-item${i === activeCapIndex ? ' is-active' : ''}" data-i="${i}">
+          <button type="button"><span class="name">${esc(g.group)}</span><span class="n">${g.items.length}</span></button>
+        </div>`).join('')}
+      </div>
+      <div class="cap-detail" id="cap-detail"></div>`;
+    paintCapDetail(groups);
+    const idx = $('#cap-index');
+    $$('.cap-idx-item button', idx).forEach((btn) => {
+      const i = Number(btn.closest('.cap-idx-item').dataset.i);
+      const activate = () => {
+        activeCapIndex = i;
+        $$('.cap-idx-item', idx).forEach((el) => el.classList.toggle('is-active', Number(el.dataset.i) === i));
+        paintCapDetail(groups);
+      };
+      btn.addEventListener('click', activate);
+      btn.addEventListener('focus', activate);
+      if (hoverCapable()) btn.addEventListener('mouseenter', activate);
+    });
+  }
+  function paintCapDetail(groups) {
+    const g = groups[activeCapIndex];
+    $('#cap-detail').innerHTML = `
+      <span class="cap-detail__label mono">${esc(g.group)} · ${g.items.length} listed</span>
+      <div class="cap-detail__list">${g.items.map((s) => `<span>${esc(s)}</span>`).join('')}</div>`;
+  }
 
   /* --------------------------------------------------------- resume plates */
   const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 18.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5"/></svg>';
@@ -225,7 +293,7 @@
         <h3>${esc(L.title)}</h3>
         <p class="res-plate__tag mono">${esc(ed.tagline)}</p>
         <div class="res-plate__acts">
-          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Download ${fileKind(ed.file)}</a>
+          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)} data-cursor="download">${DL_ICON}Download ${fileKind(ed.file)}</a>
         </div>
         <p class="res-plate__file">${esc(ed.file)}</p>
       </div>
@@ -246,44 +314,84 @@
     $('#res-count').textContent = `(${rows.length})`;
   }
 
-  /* ---------------------------------------------------------- architecture */
-  const ADJACENCY = {
-    repo: ['pipeline'], pipeline: ['repo', 'staging'], staging: ['pipeline', 'diode'],
-    diode: ['staging', 'apply'], apply: ['diode', 'workloads', 'compliance'], edge: ['workloads'],
-    workloads: ['apply', 'edge', 'telemetry'], compliance: ['apply'],
-    telemetry: ['workloads', 'llm'], llm: ['telemetry']
-  };
+  /* -------------------------------------------- architecture: pinned story */
   const ARCH_NODES = SITE.ARCH_NODES;
   const archNodes = $$('#arch-svg .n-hit');
   const archEdges = $$('#arch-svg .e-edge');
+  archNodes.forEach((n) => { n.dataset.cursor = 'inspect'; });
+
+  const STATES = [
+    { n: '01', title: 'Build', copy: 'Infrastructure as code is written, reviewed, and staged as a versioned artifact on the connected network.', nodes: ['repo', 'pipeline', 'staging'], edges: ['repo-pipeline', 'pipeline-staging'] },
+    { n: '02', title: 'Cross', copy: 'The only way in is a physically one-way data diode. Complete, self-sufficient artifacts cross once — nothing is pulled on demand.', nodes: ['staging', 'diode', 'apply'], edges: ['staging-diode', 'diode-apply'] },
+    { n: '03', title: 'Observe', copy: 'Workloads run behind an identity-brokered perimeter. Fluent Bit ships logs and security events into OpenSearch — the program’s first end-to-end visibility.', nodes: ['apply', 'workloads', 'edge', 'telemetry', 'compliance'], edges: ['apply-workloads', 'edge-workloads', 'workloads-telemetry', 'apply-compliance'] },
+    { n: '04', title: 'Intelligence', copy: 'A GPU-hosted local model retrieves against that index. An analyst asks in plain language — nothing ever leaves the enclave.', nodes: ['telemetry', 'llm'], edges: ['telemetry-llm'] }
+  ];
+
+  function applyArchState(idx) {
+    const s = STATES[idx];
+    const nodeSet = new Set(s.nodes);
+    const edgeSet = new Set(s.edges);
+    archNodes.forEach((n) => {
+      const on = nodeSet.has(n.dataset.node);
+      n.classList.toggle('is-lit', on);
+      n.classList.toggle('is-dim', !on);
+      n.classList.remove('is-active');
+    });
+    archEdges.forEach((e) => {
+      const on = edgeSet.has(e.dataset.edge);
+      e.classList.toggle('is-lit', on);
+      e.classList.toggle('is-dim', !on);
+    });
+    $('#arch-n').textContent = s.n;
+    $('#arch-title').textContent = s.title;
+    $('#arch-copy').textContent = s.copy;
+    $$('#arch-progress i').forEach((dot, i) => dot.classList.toggle('is-on', i === idx));
+  }
 
   function selectNode(key) {
     const data = ARCH_NODES[key];
     if (!data) return;
-    const related = new Set([key, ...(ADJACENCY[key] || [])]);
     archNodes.forEach((n) => {
-      const k = n.dataset.node;
-      n.classList.toggle('is-active', k === key);
-      n.classList.toggle('is-lit', related.has(k) && k !== key);
-      n.classList.toggle('is-dim', !related.has(k));
+      n.classList.toggle('is-active', n.dataset.node === key);
+      n.classList.remove('is-dim', 'is-lit');
     });
-    archEdges.forEach((e) => {
-      const [a, b] = e.dataset.edge.split('-');
-      const rel = a === key || b === key;
-      e.classList.toggle('is-lit', rel);
-      e.classList.toggle('is-dim', !rel);
-    });
-    $('#arch-side').textContent = data.side;
-    $('#arch-name').textContent = data.name;
-    $('#arch-body').textContent = data.body;
+    archEdges.forEach((e) => e.classList.remove('is-dim', 'is-lit'));
+    $('#arch-title').textContent = data.name;
+    $('#arch-copy').textContent = data.body;
+    $('#arch-n').textContent = data.side.slice(0, 2).toUpperCase();
   }
   archNodes.forEach((n) => {
     n.addEventListener('click', () => selectNode(n.dataset.node));
-    n.addEventListener('mouseenter', () => selectNode(n.dataset.node));
-    n.addEventListener('focus', () => selectNode(n.dataset.node));
     n.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNode(n.dataset.node); } });
   });
-  selectNode('diode');
+
+  const archScenes = $('#arch-scenes');
+  const archPinned = !reduced() && window.matchMedia('(min-width: 901px)').matches;
+  if (!archPinned) {
+    $('#arch-static').innerHTML = STATES.map((s) => `
+      <div><span class="n mono">${s.n}</span><h4>${esc(s.title)}</h4><p>${esc(s.copy)}</p></div>`).join('');
+    applyArchState(0);
+  } else {
+    applyArchState(0);
+    let archTicking = false;
+    function onArchScroll() {
+      if (archTicking) return;
+      archTicking = true;
+      requestAnimationFrame(() => {
+        const rect = archScenes.getBoundingClientRect();
+        const total = archScenes.offsetHeight - window.innerHeight;
+        const progress = total > 0 ? Math.max(0, Math.min(1, -rect.top / total)) : 0;
+        const idx = Math.min(STATES.length - 1, Math.floor(progress * STATES.length));
+        if (archScenes.dataset.idx !== String(idx)) {
+          archScenes.dataset.idx = String(idx);
+          applyArchState(idx);
+        }
+        archTicking = false;
+      });
+    }
+    window.addEventListener('scroll', onArchScroll, { passive: true });
+    onArchScroll();
+  }
 
   /* ------------------------------------------------------- scroll niceties */
   const progress = $('#progress');
@@ -319,7 +427,7 @@
   }
 
   /* --------------------------------------------------------- magnetic CTAs */
-  if (window.matchMedia('(hover: hover)').matches && !reduced()) {
+  if (hoverCapable() && !reduced()) {
     $$('.magnetic').forEach((el) => {
       el.addEventListener('mousemove', (e) => {
         const r = el.getBoundingClientRect();
@@ -331,7 +439,7 @@
     });
   }
 
-  /* ------------------------------------------------------ command palette */
+  /* ------------------------------------------------------------ command palette */
   const pal = $('#palette');
   const palInput = $('#pal-input');
   const palList = $('#pal-list');
@@ -381,7 +489,7 @@
     const sel = palList.children[palIdx]; if (sel) sel.scrollIntoView({ block: 'nearest' });
   }
   function openPal() { pal.setAttribute('open', ''); palInput.value = ''; renderPal(); palInput.focus(); }
-  function closePal() { pal.removeAttribute('open'); }
+  function closePal() { pal.removeAttribute('open'); palInput.blur(); }
   function runPal() { const c = palItems[palIdx]; if (c) { closePal(); c.run(); } }
 
   $('#palette-open').addEventListener('click', openPal);
@@ -389,10 +497,27 @@
   palList.addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (li) { palIdx = Number(li.dataset.i); runPal(); } });
   $$('[data-close]', pal).forEach((el) => el.addEventListener('click', closePal));
 
+  /* -------------------------------------------------------- easter egg */
+  const toast = $('#toast');
+  let toastTimer;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-on'), 2500);
+  }
+  let keyBuffer = '';
   document.addEventListener('keydown', (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); return; }
     if (e.key === '/' && !typing) { e.preventDefault(); openPal(); return; }
+    if (!typing && e.key.length === 1) {
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-4);
+      if (keyBuffer === 'sudo') {
+        document.body.classList.toggle('diagnostic');
+        showToast('System diagnostic mode — ' + (document.body.classList.contains('diagnostic') ? 'on' : 'off'));
+      }
+    }
     if (!pal.hasAttribute('open')) return;
     if (e.key === 'Escape') closePal();
     else if (e.key === 'ArrowDown') { e.preventDefault(); movePal(1); }
@@ -400,18 +525,67 @@
     else if (e.key === 'Enter') { e.preventDefault(); runPal(); }
   });
 
+  /* ------------------------------------------------------------- cursor */
+  (function cursor() {
+    const cv = $('#cursor');
+    if (!cv || !hoverCapable() || reduced()) return;
+    document.body.classList.add('has-cursor');
+    const dot = cv;
+    let x = innerWidth / 2, y = innerHeight / 2, tx = x, ty = y;
+    document.addEventListener('mousemove', (e) => { tx = e.clientX; ty = e.clientY; cv.classList.add('is-on'); });
+    (function loop() {
+      x += (tx - x) * .22; y += (ty - y) * .22;
+      dot.style.transform = `translate(${x}px, ${y}px)`;
+      requestAnimationFrame(loop);
+    })();
+
+    const LABELS = { explore: 'Explore', inspect: 'Inspect', download: 'Download', open: 'Open ↗', project: 'Explore' };
+    const label = $('#cursor-label');
+    const thumb = $('#cursor-thumb');
+
+    document.addEventListener('mouseover', (e) => {
+      const t = e.target.closest('[data-cursor]');
+      if (!t) return;
+      const mode = t.dataset.cursor;
+      cv.classList.add('is-active');
+      cv.classList.toggle('is-project', mode === 'project');
+      label.textContent = LABELS[mode] || '';
+      thumb.innerHTML = mode === 'project' ? (GLYPHS[Number(t.dataset.glyph) || 0] || '') : '';
+    });
+    document.addEventListener('mouseout', (e) => {
+      const t = e.target.closest('[data-cursor]');
+      if (!t) return;
+      const to = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-cursor]');
+      if (to === t) return;
+      cv.classList.remove('is-active', 'is-project');
+      label.textContent = '';
+      thumb.innerHTML = '';
+    });
+  })();
+
   /* ------------------------------------------------------- hero topology */
+  let topologyDraw = null;
+  function flashTopologyLabel() {
+    const lbl = $('#topology-label');
+    if (!lbl) return;
+    const names = { platform: 'PLATFORM ROUTES', devsecops: 'DELIVERY ROUTES', sre: 'TELEMETRY ROUTES', ai: 'RETRIEVAL ROUTES', zerotrust: 'SECURITY ROUTES' };
+    lbl.textContent = names[state.lens] || 'SYSTEM ROUTES';
+    lbl.classList.add('is-on');
+    clearTimeout(flashTopologyLabel._t);
+    flashTopologyLabel._t = setTimeout(() => lbl.classList.remove('is-on'), 1400);
+  }
+
   (function topology() {
     const cv = $('#topology');
     if (!cv) return;
+    const box = cv.parentElement;
     const ctx = cv.getContext('2d');
     let w = 0, h = 0, dpr = 1, clusters = [], routes = [], packets = [], raf = null;
     let pointer = { x: 0, y: 0, tx: 0, ty: 0 };
-    const isTouch = !window.matchMedia('(hover: hover)').matches;
+    const isTouch = !hoverCapable();
 
     const inkRgb = () => (currentlyDark() ? '243 246 249' : '11 15 21');
-    const signalRgb = () => getComputedStyle(root).getPropertyValue('--signal-rgb').trim() || '69 215 255';
-    const signal2Rgb = () => getComputedStyle(root).getPropertyValue('--signal-2-rgb').trim() || '255 180 84';
+    const cssVar = (name, fallback) => (getComputedStyle(root).getPropertyValue(name).trim() || fallback);
 
     function layout() {
       const r = cv.getBoundingClientRect();
@@ -421,46 +595,46 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const anchors = [
-        { x: .16, y: .28, n: 5 }, { x: .82, y: .18, n: 4 },
-        { x: .30, y: .78, n: 4 }, { x: .86, y: .68, n: 5 },
-        { x: .55, y: .42, n: 3 }
+        { x: .30, y: .24 }, { x: .74, y: .18 }, { x: .22, y: .74 }, { x: .78, y: .70 }, { x: .52, y: .46 }
       ];
       clusters = anchors.map((a, ci) => {
         const cx = a.x * w, cy = a.y * h;
-        const nodes = Array.from({ length: a.n }, (_, i) => {
+        const n = ci === 4 ? 3 : 4;
+        const nodes = Array.from({ length: n }, (_, i) => {
           const ang = i * 2.399963 + ci;
-          const rad = 26 + (i % 3) * 16;
-          return { x: cx + Math.cos(ang) * rad, y: cy + Math.sin(ang) * rad, r: i === 0 ? 3.4 : 1.6, hub: i === 0 };
+          const rad = 22 + (i % 3) * 14;
+          return { x: cx + Math.cos(ang) * rad, y: cy + Math.sin(ang) * rad, r: i === 0 ? 3.6 : 1.7, hub: i === 0 };
         });
-        return { cx, cy, nodes };
+        return { cx, cy, nodes, kind: ci };
       });
 
       routes = [];
       const trunkPairs = [[0, 4], [4, 1], [4, 2], [4, 3], [0, 2], [1, 3]];
-      trunkPairs.forEach(([a, b]) => routes.push({ a: clusters[a], b: clusters[b] }));
+      trunkPairs.forEach(([a, b]) => routes.push({ a: clusters[a], b: clusters[b], ak: a, bk: b }));
 
-      packets = routes.slice(0, 5).map((rt, i) => ({ route: rt, t: (i / 5), speed: .00035 + (i % 3) * .00009 }));
+      packets = routes.map((rt, i) => ({ route: rt, t: (i / routes.length), speed: .00032 + (i % 3) * .00008 }));
     }
 
     function draw() {
       ctx.clearRect(0, 0, w, h);
-      const ink = inkRgb(), sig = signalRgb(), sig2 = signal2Rgb();
-      const px = pointer.x * 10, py = pointer.y * 10;
+      const ink = inkRgb(), sig = cssVar('--signal-rgb', '69 215 255'), amber = cssVar('--amber-rgb', '255 180 84');
+      const activeKind = lensIndex[state.lens];
+      const px = pointer.x * 14, py = pointer.y * 14;
 
-      // trunk routes
       routes.forEach((rt) => {
-        ctx.strokeStyle = `rgb(${ink} / .08)`;
-        ctx.lineWidth = 1;
+        const on = rt.ak === activeKind || rt.bk === activeKind;
+        ctx.strokeStyle = on ? `rgb(${sig} / .3)` : `rgb(${ink} / .07)`;
+        ctx.lineWidth = on ? 1.3 : 1;
         ctx.beginPath();
         ctx.moveTo(rt.a.cx + px, rt.a.cy + py);
         ctx.lineTo(rt.b.cx + px, rt.b.cy + py);
         ctx.stroke();
       });
 
-      // clusters: intra-cluster mesh + nodes
       clusters.forEach((c) => {
+        const on = c.kind === activeKind;
         c.nodes.forEach((n) => {
-          ctx.strokeStyle = `rgb(${ink} / .14)`;
+          ctx.strokeStyle = on ? `rgb(${sig} / .35)` : `rgb(${ink} / .13)`;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(c.cx + px, c.cy + py);
@@ -468,28 +642,32 @@
           ctx.stroke();
         });
         c.nodes.forEach((n) => {
-          ctx.fillStyle = n.hub ? `rgb(${sig} / .9)` : `rgb(${ink} / .4)`;
-          if (n.hub) { ctx.shadowColor = `rgb(${sig} / .8)`; ctx.shadowBlur = 8; }
+          const color = on ? sig : ink;
+          const alpha = n.hub ? (on ? .95 : .55) : (on ? .8 : .35);
+          ctx.fillStyle = `rgb(${color} / ${alpha})`;
+          if (on && n.hub) { ctx.shadowColor = `rgb(${sig} / .85)`; ctx.shadowBlur = 10; }
           ctx.beginPath(); ctx.arc(n.x + px, n.y + py, n.r, 0, Math.PI * 2); ctx.fill();
           ctx.shadowBlur = 0;
         });
       });
 
-      // packets
       packets.forEach((p, i) => {
+        const on = p.route.ak === activeKind || p.route.bk === activeKind;
+        if (!on && i % 2 === 0) return;
         const { a, b } = p.route;
         const x = a.cx + (b.cx - a.cx) * p.t, y = a.cy + (b.cy - a.cy) * p.t;
-        const color = i % 3 === 0 ? sig2 : sig;
-        ctx.fillStyle = `rgb(${color} / .9)`;
-        ctx.shadowColor = `rgb(${color} / .8)`; ctx.shadowBlur = 6;
-        ctx.beginPath(); ctx.arc(x + px, y + py, 2, 0, Math.PI * 2); ctx.fill();
+        const color = on ? sig : amber;
+        ctx.fillStyle = `rgb(${color} / ${on ? .95 : .5})`;
+        ctx.shadowColor = `rgb(${color} / .8)`; ctx.shadowBlur = on ? 8 : 4;
+        ctx.beginPath(); ctx.arc(x + px, y + py, on ? 2.2 : 1.6, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
       });
     }
+    topologyDraw = draw;
 
     function step() {
-      pointer.x += (pointer.tx - pointer.x) * .04;
-      pointer.y += (pointer.ty - pointer.y) * .04;
+      pointer.x += (pointer.tx - pointer.x) * .05;
+      pointer.y += (pointer.ty - pointer.y) * .05;
       packets.forEach((p) => { p.t += p.speed; if (p.t > 1) p.t = 0; });
       draw();
       raf = requestAnimationFrame(step);
@@ -503,11 +681,13 @@
     }
 
     if (!isTouch) {
-      cv.parentElement.addEventListener('mousemove', (e) => {
-        const r = cv.getBoundingClientRect();
+      box.addEventListener('mousemove', (e) => {
+        const r = box.getBoundingClientRect();
         pointer.tx = ((e.clientX - r.left) / r.width - .5);
         pointer.ty = ((e.clientY - r.top) / r.height - .5);
+        $('#topology-label').classList.add('is-on');
       });
+      box.addEventListener('mouseleave', () => { $('#topology-label').classList.remove('is-on'); });
     }
 
     let rt;
