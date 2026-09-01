@@ -114,10 +114,10 @@
   function paintControls() {
     const available = editionsOf(state.lens);
     const L = activeLens();
-    root.style.setProperty('--accent-bright', L.accent);
-    root.style.setProperty('--accent-deep', L.accentInk);
-    root.style.setProperty('--accent-bright-rgb', hexToRgb(L.accent));
-    root.style.setProperty('--accent-deep-rgb', hexToRgb(L.accentInk));
+    root.style.setProperty('--idx-bright', L.accent);
+    root.style.setProperty('--idx-deep', L.accentInk);
+    root.style.setProperty('--idx-bright-rgb', hexToRgb(L.accent));
+    root.style.setProperty('--idx-deep-rgb', hexToRgb(L.accentInk));
 
     $$('[data-lens]', lensSeg).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lens === state.lens)));
     $$('[data-sector]', sectorSeg).forEach((b) => {
@@ -139,7 +139,7 @@
     const ed = activeEdition();
 
     $('#hero-role').textContent = L.title;
-    $('#hero-tagline').textContent = ed.tagline;
+    $('#hero-tagline').innerHTML = ed.tagline.split(' · ').map((s) => `<span>${esc(s)}</span>`).join('');
     $('#hero-summary').textContent = ed.summary;
 
     const heroDl = $('#hero-download');
@@ -155,15 +155,15 @@
     $('#focus-title').textContent = L.title;
     $('#focus-summary').textContent = ed.summary;
     $('#focus-impact').innerHTML = L.impact.map((i) => `
-      <article class="impact__card panel">
+      <article class="impact__card">
         <h3>${esc(i.title)}</h3>
         <p>${esc(i.body)}</p>
       </article>`).join('');
 
     paintTimeline();
-    paintMetrics();
+    paintFigures();
     paintCapabilities();
-    paintResumeCards();
+    paintResume();
   }
 
   /* -------------------------------------------------------------- timeline */
@@ -184,45 +184,23 @@
           <h3>${esc(job.role)}</h3>
           <p class="tl__org">${esc(job.org)} <span class="ctx">· ${esc(context)}</span></p>
           <ul>${bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
-          <div class="tl__stack">${job.stack.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+          <p class="tl__stack">${job.stack.map(esc).join(', ')}</p>
         </div>
       </article>`;
     }).join('');
   }
 
-  /* --------------------------------------------------------------- metrics */
-  let metricsCounted = false;
-  function paintMetrics() {
+  /* --------------------------------------------------------------- figures */
+  function paintFigures() {
     const list = METRICS.filter((m) => !m.sector || m.sector === state.sector);
-    $('#metrics').innerHTML = list.map((m) => {
+    $('#figures').innerHTML = list.map((m) => {
       const shown = m.text || m.display || ((m.prefix || '') + m.value + (m.suffix || ''));
-      const countable = !m.text && !m.display;
       return `
-      <div class="metric">
-        <div class="metric__v" ${countable ? `data-count="${m.value}" data-suffix="${m.suffix || ''}"` : ''}>${esc(countable && !metricsCounted ? '0' + (m.suffix || '') : shown)}</div>
-        <div class="metric__l">${esc(m.label)}</div>
-        <div class="metric__n">${esc(m.note)}</div>
+      <div class="figure">
+        <span class="figure__v">${esc(shown)}</span>
+        <span class="figure__l">${esc(m.label)} <span class="mono" style="opacity:.7">— ${esc(m.note)}</span></span>
       </div>`;
     }).join('');
-    if (metricsCounted) $$('#metrics [data-count]').forEach((el) => {
-      el.textContent = el.dataset.count + (el.dataset.suffix || '');
-    });
-  }
-
-  function runCounters() {
-    if (metricsCounted) return;
-    metricsCounted = true;
-    $$('#metrics [data-count]').forEach((el) => {
-      const target = Number(el.dataset.count);
-      const suffix = el.dataset.suffix || '';
-      if (reduced()) { el.textContent = target + suffix; return; }
-      const t0 = performance.now();
-      (function step(t) {
-        const p = Math.min(1, (t - t0) / 1100);
-        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))) + suffix;
-        if (p < 1) requestAnimationFrame(step);
-      })(t0);
-    });
   }
 
   /* ---------------------------------------------------------- capabilities */
@@ -230,7 +208,7 @@
 
   function paintCapabilities() {
     $('#cap-grid').innerHTML = activeLens().competencies.map((g) => `
-      <section class="cap panel">
+      <section class="cap">
         <div class="cap__h">
           <h3>${esc(g.group)}</h3>
           <span>${g.items.length} listed</span>
@@ -262,8 +240,8 @@
   capSearch.addEventListener('input', filterCaps);
 
   /* ------------------------------------------------------------- projects */
-  $('#proj-grid').innerHTML = PROJECTS.map((pr) => `
-    <article class="proj panel">
+  $('#proj-list').innerHTML = PROJECTS.map((pr) => `
+    <article class="proj">
       <div class="proj__id">
         <h3>${esc(pr.name)}</h3>
         <p class="proj__ctx">${esc(pr.context)}</p>
@@ -272,14 +250,14 @@
       <div class="proj__body">
         <p class="proj__lead">${esc(pr.lead)}</p>
         <p class="proj__detail">${esc(pr.body)}</p>
-        <div class="proj__stack">${pr.stack.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+        <p class="proj__stack"><b>Built with —</b> ${pr.stack.map(esc).join(', ')}</p>
       </div>
     </article>`).join('');
 
   /* ----------------------------------------------------------- credentials */
   const KIND = { cert: 'Certification', clearance: 'Clearance', education: 'Education' };
-  $('#cred-grid').innerHTML = CREDENTIALS.map((c) => `
-    <article class="cred panel">
+  $('#cred-ledger').innerHTML = CREDENTIALS.map((c) => `
+    <article class="cred">
       <span class="kind">${esc(KIND[c.kind])}</span>
       <h3>${esc(c.name)}</h3>
       <p>${esc(c.meta)}</p>
@@ -291,7 +269,7 @@
   $('#publications').innerHTML = PUBLICATIONS.map((p) => `<li>${esc(p)}</li>`).join('');
   $('#affiliations').textContent = AFFILIATIONS.join(' · ');
 
-  /* --------------------------------------------------------- resume cards */
+  /* --------------------------------------------------------- resume plates */
   const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 18.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5"/></svg>';
 
   const EDITION_LIST = LENSES.flatMap((l) =>
@@ -299,42 +277,45 @@
 
   const fileKind = (f) => (f.toLowerCase().endsWith('.pdf') ? 'PDF' : 'Word');
 
-  function paintResumeCards() {
-    $('#res-grid').innerHTML = EDITION_LIST.map(({ lens, sector, ed }) => {
-      const isActive = lens.id === state.lens && sector === state.sector;
-      return `
-      <article class="res panel${isActive ? ' is-active' : ''}"
-               style="--card-accent:${lens.accent};--card-ink:${lens.accentInk}">
-        <div class="res__h">
-          <span class="res__badge">${esc(lens.label)} · ${esc(SECTORS[sector].label)}</span>
-          <h3>${esc(lens.title)}</h3>
-          <p>${esc(ed.tagline)}</p>
-        </div>
-        <p class="res__sum">${esc(ed.summary.split('. ')[0])}.</p>
-        <div class="res__acts">
-          <a class="btn${isActive ? ' btn--primary' : ''}" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Download ${fileKind(ed.file)}</a>
-        </div>
-        <p class="res__file">${esc(ed.file)}</p>
-      </article>`;
-    }).join('');
-  }
+  function paintResume() {
+    const L = activeLens();
+    const ed = activeEdition();
 
-  $('#res-master').innerHTML = `
-    <article class="master panel">
-      <div>
-        <span class="master__badge">${esc(MASTER.badge)}</span>
-        <h3>${esc(MASTER.title)}</h3>
-        <p class="master__tag">${esc(MASTER.tagline)}</p>
-        <div class="master__acts">
-          <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(MASTER.file)}" ${linkAttrs(MASTER.file)}>${DL_ICON}Download ${fileKind(MASTER.file)}</a>
+    $('#res-recommended').innerHTML = `
+      <article class="plate plate--marked res-recommended">
+        <div>
+          <span class="res-recommended__badge">Recommended for this view · ${esc(SECTORS[state.sector].label)}</span>
+          <h3>${esc(L.title)}</h3>
+          <p class="res-recommended__tag">${esc(ed.tagline)}</p>
+          <div class="res-recommended__acts">
+            <a class="btn btn--primary" href="${RESUME_BASE + encodeURIComponent(ed.file)}" ${linkAttrs(ed.file)}>${DL_ICON}Download ${fileKind(ed.file)}</a>
+          </div>
+          <p class="res-recommended__file">${esc(ed.file)}</p>
         </div>
-        <p class="master__file">${esc(MASTER.file)}</p>
-      </div>
-      <div style="display:grid;gap:.9rem">
-        <p class="master__sum">${esc(MASTER.summary)}</p>
-        <p class="master__note">${esc(MASTER.note)}</p>
-      </div>
-    </article>`;
+        <p class="res-recommended__sum">${esc(ed.summary)}</p>
+      </article>`;
+
+    const rows = [{
+      label: MASTER.title + ' — master edition',
+      ctx: MASTER.tagline,
+      file: MASTER.file,
+      active: false
+    }].concat(EDITION_LIST.map(({ lens, sector, ed: e }) => ({
+      label: `${lens.title}`,
+      ctx: `${lens.label} · ${SECTORS[sector].label}`,
+      file: e.file,
+      active: lens.id === state.lens && sector === state.sector
+    })));
+
+    $('#res-register-body').innerHTML = rows.map((r) => `
+      <tr class="${r.active ? 'is-active' : ''}">
+        <td><span class="edition">${esc(r.label)}</span><span class="ctx">${esc(r.ctx)}</span></td>
+        <td class="mono">${fileKind(r.file)}</td>
+        <td><a href="${RESUME_BASE + encodeURIComponent(r.file)}" ${linkAttrs(r.file)}>Download</a></td>
+      </tr>`).join('');
+
+    $('#res-count').textContent = `(${rows.length})`;
+  }
 
   /* ---------------------------------------------------------- architecture */
   const archNodes = $$('#arch-svg .n-hit');
@@ -378,11 +359,6 @@
     }, { rootMargin: '0px 0px -12% 0px' });
     $$('.rv').forEach((el) => revealer.observe(el));
 
-    const counter = new IntersectionObserver((entries) => {
-      entries.forEach((en) => { if (en.isIntersecting) { runCounters(); counter.disconnect(); } });
-    }, { threshold: 0.35 });
-    counter.observe($('#metrics'));
-
     const spy = new IntersectionObserver((entries) => {
       entries.forEach((en) => {
         if (!en.isIntersecting) return;
@@ -395,7 +371,6 @@
     });
   } else {
     $$('.rv').forEach((el) => el.classList.add('is-in'));
-    runCounters();
   }
 
   /* ------------------------------------------------------ command palette */
@@ -478,91 +453,6 @@
     else if (e.key === 'ArrowUp') { e.preventDefault(); movePal(-1); }
     else if (e.key === 'Enter') { e.preventDefault(); runPal(); }
   });
-
-  /* -------------------------------------------------------- ambient field */
-  (function field() {
-    const cv = $('#field');
-    if (!cv) return;
-    const ctx = cv.getContext('2d');
-    let w = 0, h = 0, dpr = 1, nodes = [], packets = [], raf = null;
-
-    const accent = () => getComputedStyle(root).getPropertyValue('--a-rgb').trim() || '242 169 59';
-    const inkColor = () => (currentlyDark() ? '222 231 235' : '12 20 24');
-
-    function size() {
-      const r = cv.getBoundingClientRect();
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = r.width; h = r.height;
-      cv.width = Math.floor(w * dpr);
-      cv.height = Math.floor(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const count = Math.max(18, Math.min(52, Math.round((w * h) / 26000)));
-      nodes = Array.from({ length: count }, () => ({
-        x: Math.random() * w, y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.14, vy: (Math.random() - 0.5) * 0.14,
-        r: Math.random() * 1.3 + 0.7
-      }));
-      packets = Array.from({ length: 5 }, () => ({ a: 0, b: 1, t: Math.random(), speed: 0.0018 + Math.random() * 0.0022 }));
-    }
-
-    function draw(moving) {
-      ctx.clearRect(0, 0, w, h);
-      const ink = inkColor(), acc = accent(), LINK = 132;
-      for (let i = 0; i < nodes.length; i++) {
-        const a = nodes[i];
-        for (let j = i + 1; j < nodes.length; j++) {
-          const b = nodes[j];
-          const d = Math.hypot(a.x - b.x, a.y - b.y);
-          if (d < LINK) {
-            ctx.strokeStyle = `rgb(${ink} / ${(1 - d / LINK) * 0.16})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-          }
-        }
-      }
-      nodes.forEach((n) => {
-        ctx.fillStyle = `rgb(${ink} / .28)`;
-        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
-      });
-      packets.forEach((p) => {
-        const a = nodes[p.a % nodes.length], b = nodes[p.b % nodes.length];
-        if (!a || !b) return;
-        const x = a.x + (b.x - a.x) * p.t, y = a.y + (b.y - a.y) * p.t;
-        ctx.fillStyle = `rgb(${acc} / .85)`;
-        ctx.beginPath(); ctx.arc(x, y, 2.1, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = `rgb(${acc} / .18)`;
-        ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
-      });
-      if (!moving) return;
-      nodes.forEach((n) => {
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < -10) n.x = w + 10; if (n.x > w + 10) n.x = -10;
-        if (n.y < -10) n.y = h + 10; if (n.y > h + 10) n.y = -10;
-      });
-      packets.forEach((p) => {
-        p.t += p.speed;
-        if (p.t > 1) {
-          p.t = 0;
-          p.a = Math.floor(Math.random() * nodes.length);
-          p.b = Math.floor(Math.random() * nodes.length);
-        }
-      });
-    }
-
-    function loop() { draw(true); raf = requestAnimationFrame(loop); }
-    function start() {
-      if (raf) cancelAnimationFrame(raf);
-      size();
-      if (reduced()) draw(false); else loop();
-    }
-    let rt = null;
-    window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(start, 180); });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
-      else if (!document.hidden && !reduced() && !raf) loop();
-    });
-    start();
-  })();
 
   /* ------------------------------------------------------------ deep links */
   const params = new URLSearchParams(location.search);
